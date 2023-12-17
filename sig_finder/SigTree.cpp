@@ -165,7 +165,7 @@ bool SigTree::parseSigNode(PckrSign &sign, char chunk[3])
 		node_type = IMM;
 		sscanf(chunk, "%2X", &val);
 	}
-	else if (chunk[0] == WILD_ONE) {
+	else if (chunk[0] == chunk[1] == WILD_ONE ) {
 		node_type = WILDC;
 		val = chunk[0];
 	} else {
@@ -174,13 +174,13 @@ bool SigTree::parseSigNode(PckrSign &sign, char chunk[3])
 	return sign.addNode(val, node_type);
 }
 
-bool SigTree::loadSignature(const std::string &name, const std::string &content, size_t maxSignSize)
+bool SigTree::loadSignature(const std::string &name, const std::string &content, size_t expectedSize)
 {
 	PckrSign *sign = new PckrSign(name); // <- new signature created
 
 	std::stringstream input(content);
 	while (!input.eof()) {
-		if (maxSignSize && (sign->length() == maxSignSize)) break;
+		if (expectedSize && (sign->length() == expectedSize)) break;
 
 		// parse all chunks from the line
 		char chunk[3] = { 0, 0, 0 };
@@ -188,7 +188,9 @@ bool SigTree::loadSignature(const std::string &name, const std::string &content,
 		input >> chunk[1];
 		if (!parseSigNode(*sign, chunk)) break;
 	}
-	if (sign->length() == 0) {
+	if ((sign->length() == 0)
+		|| (expectedSize && sign->length() < expectedSize))
+	{
 		delete sign;
 		return false;
 	}

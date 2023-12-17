@@ -33,7 +33,7 @@ public:
 
 	bool addPckrSign(PckrSign *sign);
 	size_t loadFromFile(std::ifstream& input);
-	bool loadSignature(const std::string &name, const std::string &content, size_t maxSignSize = 0);
+	bool loadSignature(const std::string &name, const std::string &content, size_t expectedSize = 0);
 
 	matched getMatching(const uint8_t *buf, const size_t buf_len, bool skipNOPs);
 
