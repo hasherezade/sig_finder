@@ -157,6 +157,44 @@ matched SigTree::getMatching(const uint8_t *buf, const size_t buf_len, bool skip
 	return matchedSet;
 }
 
+bool SigTree::parseSigNode(PckrSign &sign, char chunk[3])
+{
+	sig_type node_type = ROOT;
+	unsigned int val = 0;
+	if (is_hex(chunk[0]) && is_hex(chunk[1])) {
+		node_type = IMM;
+		sscanf(chunk, "%2X", &val);
+	}
+	else if (chunk[0] == WILD_ONE) {
+		node_type = WILDC;
+		val = chunk[0];
+	} else {
+		return false;
+	}
+	return sign.addNode(val, node_type);
+}
+
+bool SigTree::loadSignature(const std::string &name, const std::string &content, size_t maxSignSize)
+{
+	PckrSign *sign = new PckrSign(name); // <- new signature created
+
+	std::stringstream input(content);
+	while (!input.eof()) {
+		if (maxSignSize && (sign->length() == maxSignSize)) break;
+
+		// parse all chunks from the line
+		char chunk[3] = { 0, 0, 0 };
+		input >> chunk[0];
+		input >> chunk[1];
+		if (!parseSigNode(*sign, chunk)) break;
+	}
+	if (sign->length() == 0) {
+		delete sign;
+		return false;
+	}
+	return this->addPckrSign(sign);
+}
+
 size_t SigTree::loadFromFile(std::ifstream& input)
 {
 	if (!input.is_open()) return 0;
@@ -189,21 +227,8 @@ size_t SigTree::loadFromFile(std::ifstream& input)
 			char chunk[3] = { 0, 0, 0 };
 			input >> chunk[0];
 			input >> chunk[1];
-
-			unsigned int val = 0;
-			if (is_hex(chunk[0]) && is_hex(chunk[1])) {
-				type = IMM;
-				sscanf(chunk, "%2X", &val);
-			}
-			else if (chunk[0] == WILD_ONE) {
-				type = WILDC;
-				val = chunk[0];
-			}
-			else break;
-
-			sign->addNode(val, type);
+			if (!parseSigNode(*sign, chunk)) break;
 		}
-
 		// check if the signature is valid:
 		if (sign->length() == signSize) {
 			if (this->addPckrSign(sign)) { // <- new signature stored

@@ -8,7 +8,7 @@ using namespace sig_ma;
 //----------------------------------------------------
 
 /* read file with signatures */
-size_t SigFinder::loadSignatures(const std::string &fname)
+size_t SigFinder::loadSignaturesFromFile(const std::string &fname)
 {
 	std::ifstream input;
 	input.open(fname);
@@ -21,6 +21,10 @@ size_t SigFinder::loadSignatures(const std::string &fname)
 	return num;
 }
 
+bool SigFinder::loadSignature(const std::string &sigName, const std::string &sigContent)
+{
+	return tree.loadSignature(sigName, sigContent);
+}
 
 matched SigFinder::getMatching(const uint8_t *buf, long buf_size, long start_offset, match_direction md)
 {

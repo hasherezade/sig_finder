@@ -33,6 +33,7 @@ public:
 
 	bool addPckrSign(PckrSign *sign);
 	size_t loadFromFile(std::ifstream& input);
+	bool loadSignature(const std::string &name, const std::string &content, size_t maxSignSize = 0);
 
 	matched getMatching(const uint8_t *buf, const size_t buf_len, bool skipNOPs);
 
@@ -52,6 +53,7 @@ protected:
 	size_t max_siglen;
 
 private:
+	bool parseSigNode(PckrSign &sign, char chunk[3]);
 	void clear(); //destroys all the signatures!
 
 friend class SigFinder;
