@@ -29,6 +29,8 @@ class SigFinder
 public:
 	SigFinder(void) {}
 	~SigFinder(void){}
+	
+	void clear() { tree.clear(); }
 
 	matched getMatching(const uint8_t *buf, long buf_size, long start_offset, match_direction md = FIXED);
 
