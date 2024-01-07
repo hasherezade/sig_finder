@@ -73,12 +73,14 @@ bool SigTree::addPckrSign(PckrSign *sign)
 		currNode = nextNode;
 	}
 
-	if (nodeToSign[currNode] == NULL) {
+	if (!nodeToSign[currNode]) {
+		// add new
 		nodeToSign[currNode] = sign;
 		insertPckrSign(sign);
 		return true;
 	}
-	return false;
+	// already exists
+	return true;
 }
 
 void SigTree::insertPckrSign(PckrSign* sign)
