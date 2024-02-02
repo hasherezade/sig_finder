@@ -10,7 +10,7 @@
 #include <string>
 
 //--------------------------------------
-/* Util*/
+
 #include <ctype.h>
 
 namespace util {
