@@ -73,12 +73,13 @@ public:
 	bool operator<(const SigNode &el) const { return el.v < this->v; }
 
 private:
-	SigNode* _insertSigNode(std::set<SigNode*, SigNode::sig_compare> &childs, uint8_t val, uint8_t vmask, sig_type vtype);
-
+	SigNode* _insertSigNode(std::set<SigNode*, SigNode::sig_compare> &nodesSet, uint8_t val, uint8_t vmask, sig_type vtype);
+	void _clearNodesSet(std::set<SigNode*, sig_compare> &nodesSet);
+	
 	uint8_t v;
 	uint8_t vmask;
 	sig_type vtype;
-	std::set<SigNode*, sig_compare> childs;
+	std::set<SigNode*, sig_compare> immediates;
 	std::set<SigNode*, sig_compare> partials;
 	std::set<SigNode*, sig_compare> wildcards;
 

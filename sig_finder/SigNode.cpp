@@ -5,8 +5,6 @@
 #include "SigNode.h"
 using namespace sig_ma;
 
-#include <stdio.h>
-
 //--------------------------------------
 
 bool SigNode::sig_compare::operator() (const SigNode* el1, const SigNode* el2 ) const
@@ -23,21 +21,22 @@ SigNode::SigNode(uint8_t _val, sig_type _vtype, uint8_t _vmask)
 	this->vmask = _vmask;
 }
 
+
+void SigNode::_clearNodesSet(std::set<SigNode*, sig_compare> &nodesSet)
+{
+	for (auto itr = nodesSet.begin(); itr != nodesSet.end();) {
+		SigNode* node = *itr;
+		++itr;
+		delete node;
+	}
+	nodesSet.clear();
+}
+
 SigNode::~SigNode()
 {
-	std::set<SigNode*, sig_compare>::iterator itr;
-	
-	for (itr = childs.begin(); itr != childs.end();) {
-		SigNode* node = *itr;
-		++itr;
-		delete node;
-	}
-
-	for (itr = wildcards.begin(); itr != wildcards.end(); ) {
-		SigNode* node = *itr;
-		++itr;
-		delete node;
-	}
+	_clearNodesSet(immediates);
+	_clearNodesSet(partials);
+	_clearNodesSet(wildcards);
 }
 
 SigNode* SigNode::getWildc() const
@@ -52,8 +51,8 @@ SigNode* SigNode::getWildc() const
 SigNode* SigNode::getChild(uint8_t val) const
 {
 	SigNode srchd(val, IMM);
-	std::set<SigNode*, sig_compare>::iterator found = childs.find(&srchd);
-	if (found == childs.end()) return NULL;
+	std::set<SigNode*, sig_compare>::iterator found = immediates.find(&srchd);
+	if (found == immediates.end()) return NULL;
 	return (*found);
 }
 
@@ -68,15 +67,14 @@ SigNode* SigNode::getPartial(uint8_t val) const
 //-----------------------------------------
 
 
-SigNode* SigNode::_insertSigNode(std::set<SigNode*, SigNode::sig_compare> &childs, uint8_t val, uint8_t vmask, sig_type vtype)
+SigNode* SigNode::_insertSigNode(std::set<SigNode*, SigNode::sig_compare> &nodesSet, uint8_t val, uint8_t vmask, sig_type vtype)
 {
 	SigNode* f_node = NULL;
 	SigNode* srchd = new SigNode(val, vtype, vmask);
-	std::set<SigNode*, SigNode::sig_compare>::iterator found = childs.find(srchd);
-	if (found == childs.end()) {
+	std::set<SigNode*, SigNode::sig_compare>::iterator found = nodesSet.find(srchd);
+	if (found == nodesSet.end()) {
 		f_node = srchd;
-		childs.insert(f_node);
-
+		nodesSet.insert(f_node);
 	} else {
 		f_node = *found;
 		delete srchd; //already exists, no need for the new one
@@ -89,7 +87,7 @@ SigNode* SigNode::putChild(uint8_t val, uint8_t vmask)
 	SigNode* f_node = NULL;
 	sig_type vtype = (vmask == 0xFF) ? IMM : PARTIAL;
 	if (vtype == IMM) {
-		f_node = _insertSigNode(this->childs, val, vmask, vtype);
+		f_node = _insertSigNode(this->immediates, val, vmask, vtype);
 	} else {
 		f_node = _insertSigNode(this->partials, val, vmask, vtype);
 	}
