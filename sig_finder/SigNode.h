@@ -68,15 +68,15 @@ public:
 	SigNode* putChild(uint8_t val, uint8_t vmask);
 	SigNode* putWildcard(uint8_t val);
 
-	bool operator==(const SigNode &el) const { return el.v == this->v; }
-	bool operator!=(const SigNode &el) const { return el.v != this->v; }
-	bool operator<(const SigNode &el) const { return el.v < this->v; }
+	bool operator==(const SigNode &el) const { return el.val == this->val; }
+	bool operator!=(const SigNode &el) const { return el.val != this->val; }
+	bool operator<(const SigNode &el) const { return el.val < this->val; }
 
 private:
 	SigNode* _insertSigNode(std::set<SigNode*, SigNode::sig_compare> &nodesSet, uint8_t val, uint8_t vmask, sig_type vtype);
 	void _clearNodesSet(std::set<SigNode*, sig_compare> &nodesSet);
 	
-	uint8_t v;
+	uint8_t val;
 	uint8_t vmask;
 	sig_type vtype;
 	std::set<SigNode*, sig_compare> immediates;

@@ -16,7 +16,7 @@ bool SigNode::sig_compare::operator() (const SigNode* el1, const SigNode* el2 ) 
 
 SigNode::SigNode(uint8_t _val, sig_type _vtype, uint8_t _vmask)
 {
-	this->v = _val;
+	this->val = _val;
 	this->vtype = _vtype;
 	this->vmask = _vmask;
 }

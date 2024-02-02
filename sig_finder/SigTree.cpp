@@ -57,7 +57,7 @@ bool SigTree::addPckrSign(PckrSign *sign)
 	SigNode* currNode = &root;
 
 	for (int indx = 0; indx < sign->nodes.size(); indx++) {
-		char value = sign->nodes[indx].v;
+		const char value = sign->nodes[indx].val;
 		SigNode* nextNode = NULL;
 
 		if (sign->nodes[indx].vtype == WILDC) {
