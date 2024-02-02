@@ -69,7 +69,7 @@ SigNode* SigNode::getPartial(uint8_t val) const
 
 SigNode* SigNode::_insertSigNode(std::set<SigNode*, SigNode::sig_compare> &nodesSet, uint8_t val, uint8_t vmask, sig_type vtype)
 {
-	SigNode* f_node = NULL;
+	SigNode* f_node = nullptr;
 	SigNode* srchd = new SigNode(val, vtype, vmask);
 	std::set<SigNode*, SigNode::sig_compare>::iterator found = nodesSet.find(srchd);
 	if (found == nodesSet.end()) {
@@ -82,19 +82,14 @@ SigNode* SigNode::_insertSigNode(std::set<SigNode*, SigNode::sig_compare> &nodes
 	return f_node;
 }
 
-SigNode* SigNode::putChild(uint8_t val, uint8_t vmask)
+SigNode* SigNode::putChild(const SigNode& node)
 {
-	SigNode* f_node = NULL;
-	sig_type vtype = (vmask == 0xFF) ? IMM : PARTIAL;
-	if (vtype == IMM) {
-		f_node = _insertSigNode(this->immediates, val, vmask, vtype);
-	} else {
-		f_node = _insertSigNode(this->partials, val, vmask, vtype);
+	if (node.vtype == WILDC || node.vmask == 0) {
+		return _insertSigNode(this->wildcards, '?', 0, WILDC);
 	}
-	return f_node;
-}
-
-SigNode* SigNode::putWildcard(uint8_t val)
-{
-	return _insertSigNode(this->wildcards, val, 0xFF, WILDC);
+	sig_type vtype = (node.vmask == 0xFF) ? IMM : PARTIAL;
+	if (vtype == IMM) {
+		return _insertSigNode(this->immediates, node.val, node.vmask, vtype);
+	}
+	return _insertSigNode(this->partials, node.val, node.vmask, vtype);
 }

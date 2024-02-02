@@ -57,14 +57,7 @@ bool SigTree::addPckrSign(PckrSign *sign)
 	SigNode* currNode = &root;
 
 	for (int indx = 0; indx < sign->nodes.size(); indx++) {
-		const char value = sign->nodes[indx].val;
-		SigNode* nextNode = NULL;
-
-		if (sign->nodes[indx].vtype == WILDC) {
-			nextNode = currNode->putWildcard(value);
-		} else {
-			nextNode = currNode->putChild(value, sign->nodes[indx].vmask);
-		}
+		SigNode* nextNode = currNode->putChild(sign->nodes[indx]);
 		if (!nextNode) {
 			// Can't add the signature
 			return false;
@@ -168,6 +161,7 @@ bool SigTree::parseSigNode(PckrSign &sign, char chunk[3])
 	else if (chunk[0] == WILD_ONE && chunk[1] == WILD_ONE ) {
 		node_type = WILDC;
 		val = chunk[0];
+		vmask = 0;
 	} else if (chunk[0] == WILD_ONE || chunk[1] == WILD_ONE ) {
 		node_type = PARTIAL;
 		if (chunk[1] == WILD_ONE && is_hex(chunk[0])) {

@@ -65,8 +65,7 @@ public:
 	SigNode* getChild(uint8_t val) const;
 	SigNode* getPartial(uint8_t val) const;
 
-	SigNode* putChild(uint8_t val, uint8_t vmask);
-	SigNode* putWildcard(uint8_t val);
+	SigNode* putChild(const SigNode& node);
 
 	bool operator==(const SigNode &el) const { return el.val == this->val; }
 	bool operator!=(const SigNode &el) const { return el.val != this->val; }
