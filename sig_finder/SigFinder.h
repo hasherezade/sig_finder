@@ -14,7 +14,10 @@ public:
 	uint64_t offset;
 	sig_ma::PckrSign* signaturePtr; // do not delete it - belongs to SignFinder
 
-	bool operator== (const FoundPacker& f2) { return (this->offset == f2.offset && this->signaturePtr == f2.signaturePtr);}
+	bool operator== (const FoundPacker& f2)
+	{
+		return (this->offset == f2.offset && this->signaturePtr == f2.signaturePtr);
+	}
 };
 
 enum match_direction {
@@ -32,7 +35,7 @@ public:
 	
 	void clear() { tree.clear(); }
 
-	matched getMatching(const uint8_t *buf, long buf_size, long start_offset, match_direction md = FIXED);
+	matched getMatching(const uint8_t *buf, long buf_size, long start_offset, match_direction md = FIXED, bool stopOnFirst = true);
 
 	bool loadSignature(const std::string &sigName, const std::string &sigContent);
 	size_t loadSignaturesFromFile(const std::string &fname);

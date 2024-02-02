@@ -26,30 +26,30 @@ bool SigFinder::loadSignature(const std::string &sigName, const std::string &sig
 	return tree.loadSignature(sigName, sigContent);
 }
 
-matched SigFinder::getMatching(const uint8_t *buf, long buf_size, long start_offset, match_direction md)
+matched SigFinder::getMatching(const uint8_t *buf, long buf_size, long start_offset, match_direction md, bool stopOnFirst)
 {
 	long srch_size = buf_size - start_offset;
 	const uint8_t* srch_bgn = buf + start_offset;
 	size_t min_sig_len = tree.getMinLen();
 	
-	matched matched;
-	matched.match_offset = 0;
+	matched matched_set;
+	matched_set.match_offset = 0;
 
 	bool skipNOPs = (md == FIXED)? true : false;
 
 	if (md == FIXED) {
-		matched = tree.getMatching(srch_bgn, srch_size, skipNOPs);
-		matched.match_offset += srch_bgn - (buf + start_offset);
-		return matched; 
+		matched_set = tree.getMatching(srch_bgn, srch_size, skipNOPs);
+		matched_set.match_offset += srch_bgn - (buf + start_offset);
+		return matched_set; 
 	}
 
 	if (md == FRONT_TO_BACK) {
 		while (srch_size > min_sig_len) {
-			matched = tree.getMatching(srch_bgn, srch_size, skipNOPs);
+			matched_set = tree.getMatching(srch_bgn, srch_size, skipNOPs);
 
-			if (matched.signs.size() > 0) {
-				matched.match_offset += srch_bgn - (buf + start_offset);
-				return matched;
+			if (stopOnFirst && matched_set.signs.size() > 0) {
+				matched_set.match_offset += srch_bgn - (buf + start_offset);
+				return matched_set;
 			}
 			srch_size--;
 			srch_bgn++;
@@ -57,14 +57,14 @@ matched SigFinder::getMatching(const uint8_t *buf, long buf_size, long start_off
 
 	} else if (md == BACK_TO_FRONT) {
 		while (srch_size > min_sig_len && srch_size <= buf_size) {
-			matched = tree.getMatching(srch_bgn, srch_size, skipNOPs);
-			if (matched.signs.size() > 0) {
-				matched.match_offset += (buf + start_offset) - srch_bgn;
-				return matched;
+			matched_set = tree.getMatching(srch_bgn, srch_size, skipNOPs);
+			if (stopOnFirst && matched_set.signs.size() > 0) {
+				matched_set.match_offset += (buf + start_offset) - srch_bgn;
+				return matched_set;
 			}
 			srch_size++;
 			srch_bgn--;
 		}
 	}
-	return matched; /* empty set */
+	return matched_set; /* empty set */
 }
