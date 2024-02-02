@@ -5,6 +5,8 @@
 #include "SigNode.h"
 using namespace sig_ma;
 
+#include <stdio.h>
+
 //--------------------------------------
 
 bool SigNode::sig_compare::operator() (const SigNode* el1, const SigNode* el2 ) const
@@ -12,10 +14,13 @@ bool SigNode::sig_compare::operator() (const SigNode* el1, const SigNode* el2 ) 
 	return (*el1) < (*el2); 
 }
 
-SigNode::SigNode(uint8_t val, sig_type type)
+//---
+
+SigNode::SigNode(uint8_t _val, sig_type _vtype, uint8_t _vmask)
 {
-	this->v =val;
-	this->type = type;
+	this->v = _val;
+	this->vtype = _vtype;
+	this->vmask = _vmask;
 }
 
 SigNode::~SigNode()
@@ -52,43 +57,46 @@ SigNode* SigNode::getChild(uint8_t val) const
 	return (*found);
 }
 
+SigNode* SigNode::getPartial(uint8_t val) const
+{
+	SigNode srchd(val, PARTIAL);
+	std::set<SigNode*, sig_compare>::iterator found = partials.find(&srchd);
+	if (found == partials.end()) return NULL;
+	return (*found);
+}
+
 //-----------------------------------------
 
-SigNode* SigNode::putChild(uint8_t val)
+
+SigNode* SigNode::_insertSigNode(std::set<SigNode*, SigNode::sig_compare> &childs, uint8_t val, uint8_t vmask, sig_type vtype)
 {
 	SigNode* f_node = NULL;
-	SigNode* srchd = new SigNode(val, IMM);
-	
-	std::set<SigNode*, sig_compare>::iterator found = childs.find(srchd);
+	SigNode* srchd = new SigNode(val, vtype, vmask);
+	std::set<SigNode*, SigNode::sig_compare>::iterator found = childs.find(srchd);
 	if (found == childs.end()) {
 		f_node = srchd;
 		childs.insert(f_node);
-		//if (DBG_LVL > 1) printf("[+] %02X %c\n", val, val);
 
 	} else {
 		f_node = *found;
 		delete srchd; //already exists, no need for the new one
-		//if (DBG_LVL > 1) printf("[#] %02X %c\n", val, val);
+	}
+	return f_node;
+}
+
+SigNode* SigNode::putChild(uint8_t val, uint8_t vmask)
+{
+	SigNode* f_node = NULL;
+	sig_type vtype = (vmask == 0xFF) ? IMM : PARTIAL;
+	if (vtype == IMM) {
+		f_node = _insertSigNode(this->childs, val, vmask, vtype);
+	} else {
+		f_node = _insertSigNode(this->partials, val, vmask, vtype);
 	}
 	return f_node;
 }
 
 SigNode* SigNode::putWildcard(uint8_t val)
 {
-	SigNode* f_node = NULL;
-	SigNode *srchd = new SigNode(val, WILDC);
-
-	std::set<SigNode*, sig_compare>::iterator found = wildcards.find(srchd);
-	if (found == wildcards.end()) {
-		f_node = srchd;
-		wildcards.insert(f_node);
-		//if (DBG_LVL > 1) printf("[+W] %02X %c\n", val, val);
-		
-	} else {
-		f_node = *found;
-		delete srchd; //already exists, no need for the new one
-		//if (DBG_LVL > 1) printf("[#W] %02X %c\n", val, val);
-
-	}
-	return f_node;
+	return _insertSigNode(this->wildcards, val, 0xFF, WILDC);
 }

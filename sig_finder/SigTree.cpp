@@ -60,10 +60,10 @@ bool SigTree::addPckrSign(PckrSign *sign)
 		char value = sign->nodes[indx].v;
 		SigNode* nextNode = NULL;
 
-		if (sign->nodes[indx].type == WILDC) {
+		if (sign->nodes[indx].vtype == WILDC) {
 			nextNode = currNode->putWildcard(value);
 		} else {
-			nextNode = currNode->putChild(value);
+			nextNode = currNode->putChild(value, sign->nodes[indx].vmask);
 		}
 		if (!nextNode) {
 			// Can't add the signature
@@ -100,6 +100,17 @@ void SigTree::insertPckrSign(PckrSign* sign)
 		this->max_siglen = len;
 }
 
+void SigTree::_storeFound(SigNode *nextC, std::vector<SigNode*>& level2, matched &matchedSet)
+{
+	if (!nextC) {
+		return;
+	}
+	PckrSign *sig = this->nodeToSign[nextC];
+	if (sig) {
+		matchedSet.signs.insert(sig);
+	}
+	level2.push_back(nextC);
+}
 
 matched SigTree::getMatching(const uint8_t *buf, const size_t buf_len, bool skipNOPs)
 {
@@ -123,23 +134,10 @@ matched SigTree::getMatching(const uint8_t *buf, const size_t buf_len, bool skip
 			if (!currNode) continue;
 			
 			// allow for alternate sig search paths: with wildcards AND with exact matches
-			SigNode *nextC = currNode->getChild(bufChar);
-			if (nextC) {
-				PckrSign *sig = this->nodeToSign[nextC];
-				if (sig) {
-					matchedSet.signs.insert(sig);
-				}
-				level2.push_back(nextC);
-			}
-			
-			nextC = currNode->getWildc();
-			if (nextC) {
-				PckrSign *sig = this->nodeToSign[nextC];
-				if (sig) {
-					matchedSet.signs.insert(sig);
-				}
-				level2.push_back(nextC);
-			}
+			_storeFound(currNode->getChild(bufChar), level2, matchedSet);
+			_storeFound(currNode->getPartial(buf[indx] & 0xF0), level2, matchedSet);
+			_storeFound(currNode->getPartial(buf[indx] & 0x0F), level2, matchedSet);
+			_storeFound(currNode->getWildc(), level2, matchedSet);
 		}
 		//-----
 		if (level2.size() == 0) {
@@ -162,6 +160,7 @@ bool SigTree::parseSigNode(PckrSign &sign, char chunk[3])
 {
 	sig_type node_type = ROOT;
 	unsigned int val = 0;
+	uint8_t vmask = 0xFF;
 	if (is_hex(chunk[0]) && is_hex(chunk[1])) {
 		node_type = IMM;
 		sscanf(chunk, "%2X", &val);
@@ -169,10 +168,19 @@ bool SigTree::parseSigNode(PckrSign &sign, char chunk[3])
 	else if (chunk[0] == WILD_ONE && chunk[1] == WILD_ONE ) {
 		node_type = WILDC;
 		val = chunk[0];
+	} else if (chunk[0] == WILD_ONE || chunk[1] == WILD_ONE ) {
+		node_type = PARTIAL;
+		if (chunk[1] == WILD_ONE && is_hex(chunk[0])) {
+			val = hex_char_to_val(chunk[0]) << 4;
+			vmask = 0xF0;
+		} else if (chunk[0] == WILD_ONE && is_hex(chunk[1])) {
+			val = hex_char_to_val(chunk[1]);
+			vmask = 0x0F;
+		}
 	} else {
 		return false;
 	}
-	return sign.addNode(val, node_type);
+	return sign.addNode(val, node_type, vmask);
 }
 
 bool SigTree::loadSignature(const std::string &name, const std::string &content, size_t expectedSize)

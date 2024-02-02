@@ -31,7 +31,7 @@ public:
 
 	std::string getName() const { return name; }
 
-	bool addNode(unsigned char val, sig_type type);
+	bool addNode(uint8_t val, sig_type vtype, uint8_t vmask);
 
 	std::string getContent()
 	{
