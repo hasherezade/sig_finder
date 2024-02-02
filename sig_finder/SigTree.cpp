@@ -50,7 +50,6 @@ void SigTree::clear()
 	signaturesVec.clear();
 }
 
-
 bool SigTree::addPckrSign(PckrSign *sign)
 {
 	if (!sign) return false;
@@ -66,8 +65,8 @@ bool SigTree::addPckrSign(PckrSign *sign)
 		} else {
 			nextNode = currNode->putChild(value);
 		}
-		if (nextNode == NULL) {
-			printf("Error in signature adding!\n");
+		if (!nextNode) {
+			// Can't add the signature
 			return false;
 		}
 		currNode = nextNode;
@@ -107,7 +106,7 @@ matched SigTree::getMatching(const uint8_t *buf, const size_t buf_len, bool skip
 	matched matchedSet;
 	matchedSet.match_offset = 0;
 
-	if (buf == NULL) return matchedSet; /* Empty */
+	if (!buf) return matchedSet; // Empty
 
 	std::vector<SigNode*> level;
 	level.push_back(&root);
@@ -244,6 +243,5 @@ size_t SigTree::loadFromFile(std::ifstream& input)
 		delete sign;
 		sign = NULL;
 	}
-
 	return loadedNum;
 }
