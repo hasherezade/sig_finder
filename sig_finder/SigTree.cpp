@@ -156,7 +156,7 @@ bool SigTree::parseSigNode(PckrSign &sign, char chunk[3])
 	uint8_t vmask = 0xFF;
 	if (is_hex(chunk[0]) && is_hex(chunk[1])) {
 		node_type = IMM;
-		snscanf(chunk, 2, "%2X", &val);
+		val = (hex_char_to_val(chunk[0]) << 4) | (hex_char_to_val(chunk[1]));
 	}
 	else if (chunk[0] == WILD_ONE && chunk[1] == WILD_ONE ) {
 		node_type = WILDC;
