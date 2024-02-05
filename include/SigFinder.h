@@ -36,7 +36,7 @@ public:
 	
 	void clear() { tree.clear(); }
 
-	matched getMatching(const uint8_t *buf, long buf_size, long start_offset, match_direction md = FIXED);
+	matched_set getMatching(const uint8_t *buf, long buf_size, long start_offset, match_direction md = FIXED, bool stopOnFirst = true);
 
 	bool loadSignature(const std::string &sigName, const std::string &sigContent);
 	size_t loadSignaturesFromFile(const std::string &fname);

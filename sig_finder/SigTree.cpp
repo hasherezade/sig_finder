@@ -121,7 +121,7 @@ matched SigTree::getMatching(const uint8_t *buf, const size_t buf_len, bool skip
 		const uint8_t bufChar = buf[indx];
 
 		std::vector<SigNode*> level2;
-
+		
 		for (std::vector<SigNode*>::const_iterator lvlI = level.begin(); lvlI != level.end(); ++lvlI) {
 			const SigNode* currNode = (*lvlI);
 			if (!currNode) continue;
@@ -143,15 +143,15 @@ matched SigTree::getMatching(const uint8_t *buf, const size_t buf_len, bool skip
 			}
 			break;
 		}
-		checked++;
 		level = level2;
+		checked++;
 	}
 	return matchedSet;
 }
 
 bool SigTree::parseSigNode(PckrSign &sign, char chunk[3])
 {
-	sig_type node_type = ROOT;
+	sig_type node_type = sig_type::ROOT;
 	unsigned int val = 0;
 	uint8_t vmask = 0xFF;
 	if (is_hex(chunk[0]) && is_hex(chunk[1])) {

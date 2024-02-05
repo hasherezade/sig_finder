@@ -23,6 +23,22 @@ struct matched {
 	std::set<PckrSign*> signs;
 	uint64_t match_offset;
 };
+
+struct matched_set
+{
+	void append(matched &m)
+	{
+		if (!m.signs.size()) return;
+		matchedSigns.push_back(m);
+	}
+
+	size_t size()
+	{
+		return matchedSigns.size();
+	}
+
+	std::vector<matched> matchedSigns;
+};
 //------------------
 
 class SigTree
