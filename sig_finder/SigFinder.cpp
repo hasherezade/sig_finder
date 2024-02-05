@@ -26,7 +26,7 @@ bool SigFinder::loadSignature(const std::string &sigName, const std::string &sig
 	return tree.loadSignature(sigName, sigContent);
 }
 
-matched SigFinder::getMatching(const uint8_t *buf, long buf_size, long start_offset, match_direction md, bool stopOnFirst)
+matched SigFinder::getMatching(const uint8_t *buf, long buf_size, long start_offset, match_direction md)
 {
 	long srch_size = buf_size - start_offset;
 	const uint8_t* srch_bgn = buf + start_offset;
@@ -34,8 +34,8 @@ matched SigFinder::getMatching(const uint8_t *buf, long buf_size, long start_off
 	
 	matched matched_set;
 	matched_set.match_offset = 0;
-
-	bool skipNOPs = (md == FIXED)? true : false;
+	const bool stopOnFirst = true;
+	bool skipNOPs = true;// (md == FIXED) ? true : false;
 
 	if (md == FIXED) {
 		matched_set = tree.getMatching(srch_bgn, srch_size, skipNOPs);

@@ -13,11 +13,12 @@ set (sig_srcs
 )
 
 set (sig_hdrs
-	sig_finder/SigNode.h
-	sig_finder/PckrSign.h
-	sig_finder/SigTree.h
-	sig_finder/SigFinder.h
-	sig_finder.h
+	include/SigNode.h
+	include/PckrSign.h
+	include/SigTree.h
+	include/SigFinder.h
+	include/sig_finder.h
 )
+include_directories ( include )
 add_library(${PROJECT_NAME} STATIC ${sig_srcs} ${sig_hdrs})
 
