@@ -1,6 +1,7 @@
 #pragma once
 
 #include <set>
+#include "PckrSign.h"
 #include "SigTree.h"
 
 namespace sig_ma {
@@ -35,7 +36,7 @@ public:
 	
 	void clear() { tree.clear(); }
 
-	matched getMatching(const uint8_t *buf, long buf_size, long start_offset, match_direction md = FIXED, bool stopOnFirst = true);
+	matched getMatching(const uint8_t *buf, long buf_size, long start_offset, match_direction md = FIXED);
 
 	bool loadSignature(const std::string &sigName, const std::string &sigContent);
 	size_t loadSignaturesFromFile(const std::string &fname);

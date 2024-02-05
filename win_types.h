@@ -1,68 +1,62 @@
-#ifndef USE_WINNT
-
-#ifndef __WIN_TYPES__
-#define __WIN_TYPES__
-
-#if _MSC_VER
-    #define snprintf _snprintf
-    #define snscanf _snscanf
-#endif
+#pragma once
 
 #ifdef _MSC_VER
-    typedef signed char        int8_t;
-    typedef short              int16_t;
-    typedef int                int32_t;
-    typedef long long          int64_t;
-    typedef unsigned char      uint8_t;
-    typedef unsigned short     uint16_t;
-    typedef unsigned int       uint32_t;
-    typedef unsigned long long uint64_t;
+	#include <stdint.h>
+	#define snprintf _snprintf
+	#define snscanf _snscanf
 #else
-# include <inttypes.h>
+	#include <inttypes.h>
 #endif
 
-#ifndef BYTE
-typedef unsigned char BYTE;
-#endif
+#if _WIN32
+	#include <windows.h>
+#else
+	#ifndef __WIN_TYPES
+	#define __WIN_TYPES__
 
-#ifndef BOOLEAN
-   typedef BYTE BOOLEAN;
-#endif
+	#ifndef BYTE
+	typedef unsigned char BYTE;
+	#endif
 
-#ifndef BOOL
-   typedef BYTE BOOL; 
-#endif
+	#ifndef BOOLEAN
+	   typedef BYTE BOOLEAN;
+	#endif
 
-#ifndef WORD
-   typedef uint16_t WORD; 
-#endif
+	#ifndef BOOL
+	   typedef BYTE BOOL; 
+	#endif
 
-#ifndef DWORD
-   typedef uint32_t DWORD; 
-#endif
+	#ifndef WORD
+	   typedef uint16_t WORD; 
+	#endif
 
-#ifndef ULONGLONG
-   typedef uint64_t ULONGLONG;
-#endif
+	#ifndef DWORD
+	   typedef uint32_t DWORD; 
+	#endif
 
-#ifndef CHAR
-    typedef char CHAR;
-#endif
+	#ifndef ULONGLONG
+	   typedef uint64_t ULONGLONG;
+	#endif
 
-#ifndef WCHAR
-    typedef wchar_t WCHAR;
-#endif
+	#ifndef CHAR
+		typedef char CHAR;
+	#endif
 
-#ifndef VOID
-    #define VOID void
-    typedef char CHAR;
-    typedef uint16_t SHORT;
-    typedef uint32_t LONG;
+	#ifndef WCHAR
+		typedef wchar_t WCHAR;
+	#endif
 
-    #if !defined(MIDL_PASS)
-	typedef int INT;
-    #endif
-#endif //VOID
+	#ifndef VOID
+		#define VOID void
+		typedef char CHAR;
+		typedef uint16_t SHORT;
+		typedef uint32_t LONG;
 
-#endif /* __WIN_TYPES__*/
-#endif /* #ifndef USE_WINNT */
+		#if !defined(MIDL_PASS)
+		typedef int INT;
+		#endif
+	#endif //VOID
+
+	#endif // __WIN_TYPES__
+
+#endif // #if _MSC_VER
