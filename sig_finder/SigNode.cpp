@@ -41,26 +41,28 @@ SigNode::~SigNode()
 
 SigNode* SigNode::getWildc() const
 {
-	/* TODO: value masking */
+	if (!wildcards.size()) return nullptr;
 	SigNode srchd(WILD_ONE, WILDC);
 	std::set<SigNode*, sig_compare>::iterator found = wildcards.find(&srchd);
-	if (found == wildcards.end()) return NULL;
+	if (found == wildcards.end()) return nullptr;
 	return (*found);
 }
 
 SigNode* SigNode::getChild(uint8_t val) const
 {
+	if (!immediates.size()) return nullptr;
 	SigNode srchd(val, IMM);
 	std::set<SigNode*, sig_compare>::iterator found = immediates.find(&srchd);
-	if (found == immediates.end()) return NULL;
+	if (found == immediates.end()) return nullptr;
 	return (*found);
 }
 
 SigNode* SigNode::getPartial(uint8_t val) const
 {
+	if (!partials.size()) return nullptr;
 	SigNode srchd(val, PARTIAL);
 	std::set<SigNode*, sig_compare>::iterator found = partials.find(&srchd);
-	if (found == partials.end()) return NULL;
+	if (found == partials.end()) return nullptr;
 	return (*found);
 }
 

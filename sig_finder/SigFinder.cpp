@@ -35,7 +35,7 @@ matched SigFinder::getMatching(const uint8_t *buf, long buf_size, long start_off
 	matched matched_set;
 	matched_set.match_offset = 0;
 	const bool stopOnFirst = true;
-	bool skipNOPs = true;// (md == FIXED) ? true : false;
+	bool skipNOPs = (md == FIXED) ? true : false;
 
 	if (md == FIXED) {
 		matched_set = tree.getMatching(srch_bgn, srch_size, skipNOPs);
