@@ -110,16 +110,18 @@ matched SigTree::getMatching(const uint8_t *buf, const size_t buf_len, bool skip
 	matched matchedSet;
 	matchedSet.match_offset = 0;
 
-	if (!buf) return matchedSet; // Empty
+	if (!buf || !buf_len) return matchedSet; // Empty
 
 	std::vector<SigNode*> level;
 	level.push_back(&root);
 
+	size_t start_offset = 0;
+
 	long checked = 0;
 	long skipped = 0;
-	for (size_t indx = 0; indx < buf_len; indx++) {
-		const uint8_t bufChar = buf[indx];
+	for (size_t indx = start_offset; indx < buf_len; indx++) {
 
+		const uint8_t bufChar = buf[indx];
 		std::vector<SigNode*> level2;
 		
 		for (std::vector<SigNode*>::const_iterator lvlI = level.begin(); lvlI != level.end(); ++lvlI) {
@@ -128,10 +130,11 @@ matched SigTree::getMatching(const uint8_t *buf, const size_t buf_len, bool skip
 			
 			// allow for alternate sig search paths: with wildcards AND with exact matches
 			_storeFound(currNode->getChild(bufChar), level2, matchedSet);
-			_storeFound(currNode->getPartial(buf[indx] & 0xF0), level2, matchedSet);
-			_storeFound(currNode->getPartial(buf[indx] & 0x0F), level2, matchedSet);
+			_storeFound(currNode->getPartial(bufChar & 0xF0), level2, matchedSet);
+			_storeFound(currNode->getPartial(bufChar & 0x0F), level2, matchedSet);
 			_storeFound(currNode->getWildc(), level2, matchedSet);
 		}
+
 		//-----
 		if (level2.size() == 0) {
 			if (buf[indx] == OP_NOP && skipNOPs) { //skip NOPs

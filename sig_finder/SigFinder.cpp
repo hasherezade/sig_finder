@@ -38,7 +38,7 @@ matched_set SigFinder::getMatching(const uint8_t *buf, long buf_size, long start
 
 	if (md == FIXED) {
 		matched mround = tree.getMatching(srch_bgn, srch_size, skipNOPs);
-		mround.match_offset = srch_bgn - (buf + start_offset);
+		mround.match_offset += srch_bgn - (buf + start_offset);
 		all_matches.append(mround);
 		return all_matches;
 	}
@@ -47,7 +47,7 @@ matched_set SigFinder::getMatching(const uint8_t *buf, long buf_size, long start
 		while (srch_size > min_sig_len) {
 			matched mround = tree.getMatching(srch_bgn, srch_size, skipNOPs);
 			if (mround.signs.size() > 0) {
-				mround.match_offset = srch_bgn - (buf + start_offset);
+				mround.match_offset += srch_bgn - (buf + start_offset);
 				all_matches.append(mround);
 				if (stopOnFirst) {
 					return all_matches;
@@ -61,7 +61,7 @@ matched_set SigFinder::getMatching(const uint8_t *buf, long buf_size, long start
 		while (srch_size > min_sig_len && srch_size <= buf_size) {
 			matched mround = tree.getMatching(srch_bgn, srch_size, skipNOPs);
 			if (mround.signs.size() > 0) {
-				mround.match_offset = (buf + start_offset) - srch_bgn;
+				mround.match_offset += (buf + start_offset) - srch_bgn;
 				all_matches.append(mround);
 				if (stopOnFirst) {
 					return all_matches;
