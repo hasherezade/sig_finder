@@ -25,7 +25,9 @@ namespace sig_ma {
 		{
 		}
 
-		bool loadByteStr(const std::string& name, const std::string& content, size_t expectedSize);
+		bool loadBytes(const BYTE *content, size_t contentSize);
+
+		bool loadByteStr(const std::string& content, size_t expectedSize = 0);
 
 		size_t length() const
 		{

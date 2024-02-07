@@ -35,9 +35,25 @@ bool sig_ma::PckrSign::parseSigNode(char chunk[3])
 	return this->addNode(val, node_type, vmask);
 }
 
-
-bool sig_ma::PckrSign::loadByteStr(const std::string& name, const std::string& content, size_t expectedSize)
+bool sig_ma::PckrSign::loadBytes(const BYTE* content, size_t contentSize)
 {
+	if (this->length() != 0) return false; //already initialized
+	for (size_t i = 0; i < contentSize; i++) {
+		BYTE val = content[i];
+		if (!this->addNode(val, IMM, 0xFF)) break;
+	}
+	if ((length() == 0)
+		|| (contentSize && length() < contentSize))
+	{
+		return false;
+	}
+	return true;
+}
+
+bool sig_ma::PckrSign::loadByteStr(const std::string& content, size_t expectedSize)
+{
+	if (this->length() != 0) return false; //already initialized
+
 	std::stringstream input(content);
 
 	// parse all the nodes one by one

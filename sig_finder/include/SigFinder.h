@@ -39,6 +39,21 @@ public:
 	matched_set getMatching(const uint8_t *buf, long buf_size, long start_offset, match_direction md = FIXED, bool stopOnFirst = true);
 
 	bool loadSignature(const std::string &sigName, const std::string &sigContent, bool isByteStr = true);
+	
+	bool loadSignature(const std::string& sigName, const BYTE* sigContent, size_t sigContentSize)
+	{
+		PckrSign* sign = new PckrSign(sigName); // <- new signature created
+		if (!sign->loadBytes(sigContent, sigContentSize)) {
+			delete sign;
+			return false;
+		}
+		if (!tree.addPckrSign(sign)) {
+			delete sign;
+			return false;
+		}
+		return true;
+	}
+
 	size_t loadSignaturesFromFile(const std::string &fname);
 
 	std::set<PckrSign*>& signatures() { return tree.all_signatures; };

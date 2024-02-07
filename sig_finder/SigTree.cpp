@@ -156,7 +156,7 @@ matched SigTree::getMatching(const uint8_t *buf, const size_t buf_len, bool skip
 bool SigTree::loadSignature(const std::string &name, const std::string &content, size_t expectedSize)
 {
 	PckrSign *sign = new PckrSign(name); // <- new signature created
-	if (!sign->loadByteStr(name, content, expectedSize)) {
+	if (!sign->loadByteStr(content, expectedSize)) {
 		delete sign;
 		return false;
 	}

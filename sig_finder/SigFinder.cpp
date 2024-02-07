@@ -24,15 +24,21 @@ size_t SigFinder::loadSignaturesFromFile(const std::string &fname)
 
 bool SigFinder::loadSignature(const std::string &sigName, const std::string &sigContent, bool isByteStr)
 {
+
+	PckrSign* sign = new PckrSign(sigName); // <- new signature created
 	if (isByteStr) {
-		return tree.loadSignature(sigName, sigContent);
+		if (sign->loadByteStr(sigContent)) {
+			return tree.addPckrSign(sign);
+		}
 	}
-	std::stringstream ss;
-	for (size_t i = 0; i < sigContent.length(); i++) {
-		char val = sigContent[i];
-		ss << util::to_hex(val) << " ";
+	else {
+		if (sign->loadBytes((const BYTE*)sigContent.c_str(), sigContent.length())) {
+			return tree.addPckrSign(sign);
+		}
 	}
-	return tree.loadSignature(sigName, ss.str());
+	//loading failed:
+	delete sign;
+	return false;
 }
 
 
