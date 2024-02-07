@@ -152,53 +152,11 @@ matched SigTree::getMatching(const uint8_t *buf, const size_t buf_len, bool skip
 	return matchedSet;
 }
 
-bool SigTree::parseSigNode(PckrSign &sign, char chunk[3])
-{
-	sig_type node_type = sig_type::ROOT;
-	unsigned int val = 0;
-	uint8_t vmask = 0xFF;
-	if (is_hex(chunk[0]) && is_hex(chunk[1])) {
-		node_type = IMM;
-		val = (hex_char_to_val(chunk[0]) << 4) | (hex_char_to_val(chunk[1]));
-	}
-	else if (chunk[0] == WILD_ONE && chunk[1] == WILD_ONE ) {
-		node_type = WILDC;
-		val = chunk[0];
-		vmask = 0;
-	} else if (chunk[0] == WILD_ONE || chunk[1] == WILD_ONE ) {
-		node_type = PARTIAL;
-		if (chunk[1] == WILD_ONE && is_hex(chunk[0])) {
-			val = hex_char_to_val(chunk[0]) << 4;
-			vmask = 0xF0;
-		} else if (chunk[0] == WILD_ONE && is_hex(chunk[1])) {
-			val = hex_char_to_val(chunk[1]);
-			vmask = 0x0F;
-		}
-	} else {
-		return false;
-	}
-	return sign.addNode(val, node_type, vmask);
-}
 
 bool SigTree::loadSignature(const std::string &name, const std::string &content, size_t expectedSize)
 {
 	PckrSign *sign = new PckrSign(name); // <- new signature created
-
-	std::stringstream input(content);
-
-	// parse all the nodes one by one
-	while (!input.eof()) {
-		if (expectedSize && (sign->length() == expectedSize)) break;
-
-		// parse all chunks from the line
-		char chunk[3] = { 0, 0, 0 };
-		input >> chunk[0];
-		input >> chunk[1];
-		if (!parseSigNode(*sign, chunk)) break;
-	}
-	if ((sign->length() == 0)
-		|| (expectedSize && sign->length() < expectedSize))
-	{
+	if (!sign->loadByteStr(name, content, expectedSize)) {
 		delete sign;
 		return false;
 	}
@@ -237,7 +195,7 @@ size_t SigTree::loadFromFile(std::ifstream& input)
 			char chunk[3] = { 0, 0, 0 };
 			input >> chunk[0];
 			input >> chunk[1];
-			if (!parseSigNode(*sign, chunk)) break;
+			if (!sign->parseSigNode(chunk)) break;
 		}
 		// check if the signature is valid:
 		if (sign->length() == signSize) {

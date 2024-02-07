@@ -71,7 +71,6 @@ protected:
 private:
 	void _storeFound(SigNode *nextC, std::vector<SigNode*>& level2, matched &matchedSet);
 
-	bool parseSigNode(PckrSign &sign, char chunk[3]);
 	void clear(); //destroys all the signatures!
 
 friend class SigFinder;

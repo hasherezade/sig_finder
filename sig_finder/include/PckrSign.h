@@ -25,6 +25,8 @@ namespace sig_ma {
 		{
 		}
 
+		bool loadByteStr(const std::string& name, const std::string& content, size_t expectedSize);
+
 		size_t length() const
 		{
 			return nodes.size();
@@ -40,6 +42,8 @@ namespace sig_ma {
 		}
 
 	protected:
+		bool parseSigNode(char chunk[3]);
+
 		std::string name;
 		std::vector<SigNode> nodes;
 		std::string signContent;
