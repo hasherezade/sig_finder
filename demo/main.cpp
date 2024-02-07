@@ -1,6 +1,7 @@
 #include <iostream>
 #include <sig_finder.h>
 
+#include "pattern_tree.h"
 
 BYTE* load_file(const char* filename, size_t& buf_size)
 {
@@ -52,18 +53,62 @@ void init_string_signs(sig_ma::SigFinder& signFinder)
 	signFinder.loadSignature("str1", "module", false);
 }
 
-void walk_array(BYTE* loadedData, size_t loadedSize)
+inline bool is_matching(const BYTE* loadedData, const size_t loadedSize, const BYTE* pattern, const size_t pattern_size)
+{
+	if (loadedSize < pattern_size) return false;
+
+	for (size_t j = 0; j < pattern_size; j++) {
+		if (loadedData[j] != pattern[j]) return false;
+	}
+	return true;
+}
+
+
+void walk_array1(BYTE* loadedData, size_t loadedSize)
 {
 	const BYTE pattern[] = { 0x40, 0x53, 0x48, 0x83, 0xec };
 	size_t counter = 0;
 	DWORD start = GetTickCount();
-	for (size_t i = 0; i < loadedSize; i++) {
-		if ((loadedSize - i) >= sizeof(pattern)) {
-			if (::memcmp(loadedData + i, pattern, sizeof(pattern)) == 0) counter++;
+	for (size_t k = 0; k < 1; k++) {
+		counter = 0;
+		for (size_t i = 0; i < loadedSize; i++) {
+			if ((loadedSize - i) >= sizeof(pattern)) {
+				if (::memcmp(loadedData + i, pattern, sizeof(pattern)) == 0) counter++;
+			}
 		}
 	}
 	DWORD end = GetTickCount();
-	std::cout << "Occ. counted: " << counter << " Time: " << (end - start) << " ms." << std::endl;
+	std::cout << __FUNCTION__ << " Occ. counted: " << counter << " Time: " << (end - start) << " ms." << std::endl;
+}
+
+void walk_array2(BYTE* loadedData, size_t loadedSize)
+{
+	Node* rootN = new Node();
+	/*
+	const BYTE pattern[] = { 0x40, 0x53, 0x48, 0x83, 0xec };
+	Node::addPattern(rootN, pattern, sizeof(pattern));
+
+	const BYTE pattern2[] = { 0x55, 0x48, 0x8B, 0xec };
+	Node::addPattern(rootN, pattern2, sizeof(pattern2));
+
+	const BYTE pattern3[] = { 0x40, 0x55, 0x48, 0x83, 0xec };
+	Node::addPattern(rootN, pattern3, sizeof(pattern3));
+	*/
+	const char* patternM = "module";
+	Node::addPattern(rootN, (const BYTE*)patternM, strlen(patternM));
+	//rootN->print();
+
+	size_t counter = 0;
+	DWORD start = GetTickCount();
+
+	for (size_t i = 0; i < loadedSize; i++) {
+		
+		if (rootN->isMatching(loadedData + i, loadedSize - i)) counter++;
+	}
+
+	DWORD end = GetTickCount();
+	std::cout << __FUNCTION__ << " Occ. counted: " << counter << " Time: " << (end - start) << " ms." << std::endl;
+
 }
 
 int main(int argc, char *argv[])
@@ -85,13 +130,17 @@ int main(int argc, char *argv[])
 	//init_byte_signs(signFinder);
 	init_string_signs(signFinder);
 
-	walk_array(loadedData, loadedSize);
+	for (size_t i = 0; i < 20; i++) {
+		//walk_array1(loadedData, loadedSize);
+		walk_array2(loadedData, loadedSize);
+	}
 
 	DWORD start = GetTickCount();
 	sig_ma::matched_set mS = signFinder.getMatching(loadedData, loadedSize, 0, sig_ma::FRONT_TO_BACK, false);
 	DWORD end = GetTickCount();
 
 	std::cout << "All matched: " << mS.size() << " Time: " << (end - start) << " ms." << std::endl;
+
 #ifdef _PRINT_ALL
 	for (auto itr = mS.matchedSigns.begin(); itr != mS.matchedSigns.end(); ++itr) {
 		std::cout << "Offset: " << std::hex << itr->match_offset << "\n";

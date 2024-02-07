@@ -93,16 +93,17 @@ void SigTree::insertPckrSign(PckrSign* sign)
 		this->max_siglen = len;
 }
 
-void SigTree::_storeFound(SigNode *nextC, std::vector<SigNode*>& level2, matched &matchedSet)
+bool SigTree::_storeFound(SigNode *nextC, std::vector<SigNode*>& level2, matched &matchedSet)
 {
 	if (!nextC) {
-		return;
+		return false;
 	}
 	PckrSign *sig = this->nodeToSign[nextC];
 	if (sig) {
 		matchedSet.signs.insert(sig);
 	}
 	level2.push_back(nextC);
+	return true;
 }
 
 matched SigTree::getMatching(const uint8_t *buf, const size_t buf_len, bool skipNOPs)
@@ -127,12 +128,18 @@ matched SigTree::getMatching(const uint8_t *buf, const size_t buf_len, bool skip
 		for (std::vector<SigNode*>::const_iterator lvlI = level.begin(); lvlI != level.end(); ++lvlI) {
 			const SigNode* currNode = (*lvlI);
 			if (!currNode) continue;
+
+			size_t prev = level2.size();
 			
 			// allow for alternate sig search paths: with wildcards AND with exact matches
 			_storeFound(currNode->getChild(bufChar), level2, matchedSet);
 			_storeFound(currNode->getPartial(bufChar & 0xF0), level2, matchedSet);
 			_storeFound(currNode->getPartial(bufChar & 0x0F), level2, matchedSet);
 			_storeFound(currNode->getWildc(), level2, matchedSet);
+
+			/*if (level2.size() > prev) {
+				std::cout << indx << " CurrVal: " << std::hex << (unsigned int)currNode->val << " : " << currNode->val << "\n";
+			}*/
 		}
 
 		//-----

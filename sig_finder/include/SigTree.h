@@ -69,7 +69,7 @@ protected:
 	size_t max_siglen;
 
 private:
-	void _storeFound(SigNode *nextC, std::vector<SigNode*>& level2, matched &matchedSet);
+	bool _storeFound(SigNode *nextC, std::vector<SigNode*>& level2, matched &matchedSet);
 
 	void clear(); //destroys all the signatures!
 
