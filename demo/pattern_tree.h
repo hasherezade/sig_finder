@@ -3,7 +3,9 @@
 #include <Windows.h>
 #include <iostream>
 #include <string>
+#include <set>
 #include <map>
+#include <vector>
 
 namespace pattern_tree {
 
@@ -79,6 +81,18 @@ namespace pattern_tree {
 		{
 		}
 
+		~Node()
+		{
+			for (auto itr = immediates.begin(); itr != immediates.end(); ++itr) {
+				Node* next = itr->second;
+				delete next;
+			}
+			immediates.clear();
+			if (sign) {
+				delete sign;
+			}
+		}
+
 		Node* getNode(BYTE _val)
 		{
 			auto found = immediates.find(_val);
@@ -113,17 +127,27 @@ namespace pattern_tree {
 		Match getMatching(const BYTE* data, size_t data_size)
 		{
 			Match empty;
-			Node* curr = this;
+			//
+			std::vector<Node*> level;
+			level.push_back(this);
 			for (size_t i = 0; i < data_size; i++)
 			{
-				if (curr->iSign()) {
-					const size_t match_start = i - curr->sign->pattern_size;
-					return Match(match_start, curr->sign);
+				std::vector<Node*> level2;
+				for (auto itr = level.begin(); itr != level.end(); ++itr) {
+					Node* curr = *itr;
+					if (curr->iSign()) {
+						const size_t match_start = i - curr->sign->pattern_size;
+						return Match(match_start, curr->sign);
+					}
+					if (curr->isEnd()) return empty;
+					BYTE val = data[i];
+					curr = curr->getNode(val);
+					if (curr) {
+						level2.push_back(curr);
+					}
 				}
-				if (curr->isEnd()) return empty;
-				BYTE val = data[i];
-				curr = curr->getNode(val);
-				if (!curr) return empty;
+				if (level2.empty()) return empty;
+				level = level2;
 			}
 			return empty;
 		}
