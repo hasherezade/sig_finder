@@ -1,24 +1,20 @@
-cmake_minimum_required(VERSION 3.0)
-project (sig_finder)
+cmake_minimum_required ( VERSION 3.0 )
 
-# Offer the user the choice of overriding the installation directories
-set(INSTALL_LIB_DIR lib CACHE PATH "Installation directory for libraries")
-set(INSTALL_BIN_DIR bin CACHE PATH "Installation directory for executables")
+project ( SigFinder )
 
-set (sig_srcs
-	sig_finder/SigNode.cpp
-	sig_finder/PckrSign.cpp
-	sig_finder/SigTree.cpp
-	sig_finder/SigFinder.cpp
-)
+# modules:
+set ( M_SIGFINDER_LIB "sig_finder" )
+set ( M_SIGFINDER_DEMO "demo" )
 
-set (sig_hdrs
-	include/SigNode.h
-	include/PckrSign.h
-	include/SigTree.h
-	include/SigFinder.h
-	include/sig_finder.h
-)
-include_directories ( include )
-add_library(${PROJECT_NAME} STATIC ${sig_srcs} ${sig_hdrs})
+# modules paths:
+set ( PARAMKIT_DIR "${CMAKE_SOURCE_DIR}/${M_SIGFINDER_LIB}" CACHE PATH "SigFinder main path" )
 
+# Add sub-directories
+#
+# libs
+add_subdirectory ( sig_finder )
+set ( PARAMKIT_LIB $<TARGET_FILE:sig_finder> CACHE PATH "SigFinder library path" )
+
+#demos:
+add_subdirectory ( demo )
+add_dependencies ( demo sig_finder )
