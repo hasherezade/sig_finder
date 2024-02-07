@@ -2,6 +2,7 @@
 #include <sig_finder.h>
 
 #include "pattern_tree.h"
+using namespace SigTree;
 
 BYTE* load_file(const char* filename, size_t& buf_size)
 {
@@ -84,30 +85,34 @@ void walk_array1(BYTE* loadedData, size_t loadedSize)
 void walk_array2(BYTE* loadedData, size_t loadedSize)
 {
 	Node* rootN = new Node();
-	/*
+
 	const BYTE pattern[] = { 0x40, 0x53, 0x48, 0x83, 0xec };
-	Node::addPattern(rootN, pattern, sizeof(pattern));
+	Node::addPattern(rootN, "prolog32_1", pattern, sizeof(pattern));
 
 	const BYTE pattern2[] = { 0x55, 0x48, 0x8B, 0xec };
-	Node::addPattern(rootN, pattern2, sizeof(pattern2));
+	Node::addPattern(rootN, "prolog32_2", pattern2, sizeof(pattern2));
 
 	const BYTE pattern3[] = { 0x40, 0x55, 0x48, 0x83, 0xec };
-	Node::addPattern(rootN, pattern3, sizeof(pattern3));
-	*/
+	Node::addPattern(rootN, "prolog32_3", pattern3, sizeof(pattern3));
+
 	const char* patternM = "module";
-	Node::addPattern(rootN, (const BYTE*)patternM, strlen(patternM));
+	Node::addPattern(rootN, "module", (const BYTE*)patternM, strlen(patternM));
 	//rootN->print();
 
 	size_t counter = 0;
 	DWORD start = GetTickCount();
 
 	for (size_t i = 0; i < loadedSize; i++) {
-		
-		if (rootN->isMatching(loadedData + i, loadedSize - i)) counter++;
+		Match m = rootN->getMatching(loadedData + i, loadedSize - i);
+		if (m.sign) {
+			m.offset += i;
+			//std::cout << std::hex << m.offset << " : " << m.sign->name << "\n";
+			counter++;
+		}
 	}
 
 	DWORD end = GetTickCount();
-	std::cout << __FUNCTION__ << " Occ. counted: " << counter << " Time: " << (end - start) << " ms." << std::endl;
+	std::cout << __FUNCTION__ << std::dec << " Occ. counted: " << counter << " Time: " << (end - start) << " ms." << std::endl;
 
 }
 
