@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <fstream>
+#include "util.h"
 
 using namespace sig_ma;
 
@@ -21,10 +22,19 @@ size_t SigFinder::loadSignaturesFromFile(const std::string &fname)
 	return num;
 }
 
-bool SigFinder::loadSignature(const std::string &sigName, const std::string &sigContent)
+bool SigFinder::loadSignature(const std::string &sigName, const std::string &sigContent, bool isByteStr)
 {
-	return tree.loadSignature(sigName, sigContent);
+	if (isByteStr) {
+		return tree.loadSignature(sigName, sigContent);
+	}
+	std::stringstream ss;
+	for (size_t i = 0; i < sigContent.length(); i++) {
+		char val = sigContent[i];
+		ss << util::to_hex(val) << " ";
+	}
+	return tree.loadSignature(sigName, ss.str());
 }
+
 
 matched_set SigFinder::getMatching(const uint8_t *buf, long buf_size, long start_offset, match_direction md, bool stopOnFirst)
 {

@@ -185,6 +185,8 @@ bool SigTree::loadSignature(const std::string &name, const std::string &content,
 	PckrSign *sign = new PckrSign(name); // <- new signature created
 
 	std::stringstream input(content);
+
+	// parse all the nodes one by one
 	while (!input.eof()) {
 		if (expectedSize && (sign->length() == expectedSize)) break;
 
