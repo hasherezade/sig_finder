@@ -52,6 +52,20 @@ void init_string_signs(sig_ma::SigFinder& signFinder)
 	signFinder.loadSignature("str1", "module", false);
 }
 
+void walk_array(BYTE* loadedData, size_t loadedSize)
+{
+	const BYTE pattern[] = { 0x40, 0x53, 0x48, 0x83, 0xec };
+	size_t counter = 0;
+	DWORD start = GetTickCount();
+	for (size_t i = 0; i < loadedSize; i++) {
+		if ((loadedSize - i) >= sizeof(pattern)) {
+			if (::memcmp(loadedData + i, pattern, sizeof(pattern)) == 0) counter++;
+		}
+	}
+	DWORD end = GetTickCount();
+	std::cout << "Occ. counted: " << counter << " Time: " << (end - start) << " ms." << std::endl;
+}
+
 int main(int argc, char *argv[])
 {
 	if (argc < 2) {
@@ -70,6 +84,9 @@ int main(int argc, char *argv[])
 
 	//init_byte_signs(signFinder);
 	init_string_signs(signFinder);
+
+	walk_array(loadedData, loadedSize);
+
 	DWORD start = GetTickCount();
 	sig_ma::matched_set mS = signFinder.getMatching(loadedData, loadedSize, 0, sig_ma::FRONT_TO_BACK, false);
 	DWORD end = GetTickCount();
