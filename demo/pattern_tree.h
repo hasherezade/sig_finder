@@ -50,6 +50,46 @@ namespace pattern_tree {
 		Signature* sign;
 	};
 
+	template<class Element> class ShortList
+	{
+	public:
+		ShortList()
+			: elMax(100), elCount(0)
+		{
+		}
+
+		bool push_back(Element n)
+		{
+			if (elCount >= elMax) return false;
+			list[elCount] = n;
+			elCount++;
+			return true;
+		}
+
+		Element at(size_t i)
+		{
+			if (i < elCount) {
+				return list[i];
+			}
+			return nullptr;
+		}
+
+		void clear()
+		{
+			elCount = 0;
+		}
+
+		size_t size()
+		{
+			return elCount;
+		}
+
+	protected:
+		const size_t elMax;
+		size_t elCount;
+		Element list[100];
+	};
+
 	class Node
 	{
 	public:
@@ -128,26 +168,34 @@ namespace pattern_tree {
 		{
 			Match empty;
 			//
-			std::vector<Node*> level;
+			ShortList<Node*> level;
 			level.push_back(this);
+			ShortList<Node*> level2;
+
+			auto level1_ptr = &level;
+			auto level2_ptr = &level2;
+
 			for (size_t i = 0; i < data_size; i++)
 			{
-				std::vector<Node*> level2;
-				for (auto itr = level.begin(); itr != level.end(); ++itr) {
-					Node* curr = *itr;
+				level2_ptr->clear();
+				for (size_t k = 0; k < level1_ptr->size(); k++) {
+					Node * curr = level1_ptr->at(k);
 					if (curr->iSign()) {
 						const size_t match_start = i - curr->sign->pattern_size;
 						return Match(match_start, curr->sign);
 					}
 					if (curr->isEnd()) return empty;
-					BYTE val = data[i];
-					curr = curr->getNode(val);
+
+					curr = curr->getNode(data[i]);
 					if (curr) {
-						level2.push_back(curr);
+						level2_ptr->push_back(curr);
 					}
 				}
-				if (level2.empty()) return empty;
-				level = level2;
+				if (!level2_ptr->size()) return empty;
+				//swap:
+				auto tmp = level1_ptr;
+				level1_ptr = level2_ptr;
+				level2_ptr = tmp;
 			}
 			return empty;
 		}
