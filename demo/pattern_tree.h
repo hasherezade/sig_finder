@@ -33,6 +33,12 @@ namespace pattern_tree {
 			}
 		}
 
+		Signature(const Signature& _sign) // copy constructor
+			: pattern(nullptr), pattern_size(0), mask(nullptr)
+		{
+			init(_sign.name, _sign.pattern, _sign.pattern_size, _sign.mask);
+		}
+
 		size_t size()
 		{
 			return pattern_size;
@@ -41,9 +47,32 @@ namespace pattern_tree {
 		std::string name;
 
 	protected:
+
 		size_t pattern_size;
 		BYTE* pattern;
 		BYTE* mask;
+
+	private:
+		bool init(std::string _name, const BYTE* _pattern, size_t _pattern_size, const BYTE* _mask)
+		{
+			if (this->pattern || this->mask) return false;
+
+			this->pattern = (BYTE*)::calloc(_pattern_size, 1);
+			if (!this->pattern) return false;
+
+			::memcpy(this->pattern, _pattern, _pattern_size);
+			this->pattern_size = _pattern_size;
+
+			if (_mask) {
+				this->mask = (BYTE*)::calloc(_pattern_size, 1);
+				if (this->mask) {
+					::memcpy(this->mask, _mask, _pattern_size);
+				}
+			}
+			return true;
+		}
+
+		friend class Node;
 	};
 
 	class Match
@@ -126,7 +155,6 @@ namespace pattern_tree {
 	class Node
 	{
 	public:
-
 		static bool addPattern(Node* rootN, const char* _name, const BYTE* pattern, size_t pattern_size, const BYTE* pattern_mask=nullptr)
 		{
 			if (!rootN || !pattern || !pattern_size) {
@@ -147,10 +175,15 @@ namespace pattern_tree {
 			return Node::addPattern(rootN, pattern1, (const BYTE*)pattern1, strlen(pattern1));
 		}
 
+		static bool addSignature(Node* rootN, const Signature& sign)
+		{
+			return addPattern(rootN, sign.name.c_str(), sign.pattern, sign.pattern_size, sign.mask);
+		}
+
 		//---
 
 		Node()
-			: level(0), val(0), mask(0xFF),
+			: level(0), val(0), mask(MASK_IMM),
 			sign(nullptr)
 		{
 		}
