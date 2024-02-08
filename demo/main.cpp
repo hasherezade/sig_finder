@@ -82,7 +82,7 @@ void walk_array1(BYTE* loadedData, size_t loadedSize)
 	std::cout << __FUNCTION__ << " Occ. counted: " << counter << " Time: " << (end - start) << " ms." << std::endl;
 }
 
-size_t find_matches(Node &rootN, BYTE loadedData[], size_t loadedSize)
+size_t find_matches(Node &rootN, BYTE loadedData[], size_t loadedSize, bool showMatches = true)
 {
 	std::vector<Match> allMatches;
 	DWORD start = GetTickCount();
@@ -90,7 +90,8 @@ size_t find_matches(Node &rootN, BYTE loadedData[], size_t loadedSize)
 	DWORD end = GetTickCount();
 	for (auto itr = allMatches.begin(); itr != allMatches.end(); ++itr) {
 		Match m = *itr;
-		std::cout << "Match: " << m.offset << " : " << m.sign->name << "\n";
+		if (showMatches)
+			std::cout << "Match: " << m.offset << " : " << m.sign->name << "\n";
 	}
 	std::cout << __FUNCTION__ << std::dec << " Occ. counted: " << counter << " Time: " << (end - start) << " ms." << std::endl;
 	return counter;
@@ -112,7 +113,7 @@ void walk_array2(BYTE* loadedData, size_t loadedSize)
 
 	Node::addTextPattern(&rootN, "module");
 
-	find_matches(rootN, loadedData, loadedSize);
+	find_matches(rootN, loadedData, loadedSize, false);
 }
 
 bool aho_corasic_test()
@@ -213,7 +214,6 @@ int main(int argc, char *argv[])
 		std::cout << " Args: <filename>\n";
 		return 0;
 	}
-	/*
 
 	size_t loadedSize = 0;
 	BYTE *loadedData = load_file(argv[1], loadedSize);
@@ -237,7 +237,7 @@ int main(int argc, char *argv[])
 	DWORD end = GetTickCount();
 
 	std::cout << "All matched: " << mS.size() << " Time: " << (end - start) << " ms." << std::endl;
-	*/
+
 #ifdef _PRINT_ALL
 	for (auto itr = mS.matchedSigns.begin(); itr != mS.matchedSigns.end(); ++itr) {
 		std::cout << "Offset: " << std::hex << itr->match_offset << "\n";

@@ -6,6 +6,11 @@
 #include <map>
 #include <vector>
 
+#define MASK_IMM 0xFF
+#define MASK_PARTIAL1 0x0F
+#define MASK_PARTIAL2 0x0F
+#define MASK_WILDCARD 0x00
+
 namespace pattern_tree {
 
 	class Signature
@@ -114,14 +119,15 @@ namespace pattern_tree {
 	{
 	public:
 
-		static bool addPattern(Node* rootN, const char* _name, const BYTE* pattern, size_t pattern_size)
+		static bool addPattern(Node* rootN, const char* _name, const BYTE* pattern, size_t pattern_size, const BYTE* pattern_mask=nullptr)
 		{
 			if (!rootN || !pattern || !pattern_size) {
 				return false;
 			}
 			Node* next = rootN;
 			for (size_t i = 0; i < pattern_size; i++) {
-				next = next->addNext(pattern[i]);
+				BYTE mask = pattern_mask ? pattern_mask[i] : MASK_IMM;
+				next = next->addNext(pattern[i], mask);
 				if (!next) return false;
 			}
 			next->sign = new Signature(_name, pattern, pattern_size);
@@ -136,13 +142,13 @@ namespace pattern_tree {
 		//---
 
 		Node()
-			: level(0), val(0),
+			: level(0), val(0), mask(0xFF),
 			sign(nullptr)
 		{
 		}
 
-		Node(BYTE _val, size_t _level)
-			: val(_val), level(_level),
+		Node(BYTE _val, size_t _level, BYTE _mask)
+			: val(_val), level(_level), mask(_mask),
 			sign(nullptr)
 		{
 		}
@@ -159,21 +165,33 @@ namespace pattern_tree {
 			}
 		}
 
-		Node* getNode(BYTE _val)
+		Node* getNode(BYTE _val, BYTE _mask)
 		{
-			auto found = immediates.find(_val);
-			if (found != immediates.end()) {
-				return found->second;
+			BYTE maskedVal = _val & _mask;
+			if (_mask == MASK_IMM) {
+				return _findInChildren(immediates, maskedVal);
+			}
+			else if (_mask == MASK_PARTIAL1 || _mask == MASK_PARTIAL2) {
+				return _findInChildren(partials, maskedVal);
+			}
+			else if (_mask == MASK_WILDCARD) {
+				return _findInChildren(wildcards, maskedVal);
 			}
 			return nullptr;
 		}
 
-		Node* addNext(BYTE _val)
+		Node* addNext(BYTE _val, BYTE _mask = MASK_IMM)
 		{
-			Node* nextN = getNode(_val);
+			Node* nextN = getNode(_val, _mask);
 			if (!nextN) {
-				nextN = new Node(_val, this->level + 1);
-				immediates[_val] = nextN;
+				BYTE maskedVal = _val & _mask;
+				nextN = new Node(_val, this->level + 1, _mask);
+				if (_mask == MASK_IMM)
+					immediates[maskedVal] = nextN;
+				else if (_mask == MASK_PARTIAL1 || _mask == MASK_PARTIAL2)
+					partials[maskedVal] = nextN;
+				else if (mask == MASK_WILDCARD)
+					wildcards[maskedVal] = nextN;
 			}
 			return nextN;
 		}
@@ -207,7 +225,7 @@ namespace pattern_tree {
 				processed = i; // processed bytes
 				level2_ptr->clear();
 				for (size_t k = 0; k < level1_ptr->size(); k++) {
-					Node * curr = level1_ptr->at(k);
+					Node* curr = level1_ptr->at(k);
 					if (curr->isSign()) {
 						size_t match_start = i - curr->sign->size();
 						Match m(match_start, curr->sign);
@@ -216,18 +234,11 @@ namespace pattern_tree {
 							return match_start;
 						}
 					}
-					Node* prev = curr;
-					curr = prev->getNode(data[i]);
-					if (curr) {
-						level2_ptr->push_back(curr);
-					}
+					_followAllMasked(level2_ptr, curr, data[i]);
 #ifdef SEARCH_BACK
-					if (prev != this) {
+					if (curr != this) {
 						// the current value may also be a beginning of a new pattern:
-						Node* start = this->getNode(data[i]);
-						if (start) {
-							level2_ptr->push_back(start);
-						}
+						_followAllMasked(level2_ptr, this, data[i]);
 					}
 #endif
 				}
@@ -249,7 +260,7 @@ namespace pattern_tree {
 
 		bool isEnd()
 		{
-			return this->immediates.size() ? false : true;
+			return (!immediates.size() && !partials.size() && !wildcards.size()) ? true : false;
 		}
 
 		bool isSign()
@@ -258,24 +269,48 @@ namespace pattern_tree {
 		}
 
 	protected:
+		Node* _findInChildren(std::map<BYTE, Node*>& children, BYTE _val)
+		{
+			auto found = children.find(_val);
+			if (found != children.end()) {
+				return found->second;
+			}
+			return nullptr;
+		}
+
+		bool _followMasked(ShortList<Node*>* level2_ptr, Node* curr, BYTE val, BYTE mask)
+		{
+			Node* next = curr->getNode(val, mask);
+			if (!next) {
+				return false;
+			}
+			return level2_ptr->push_back(next);
+		}
+
+		void _followAllMasked(ShortList<Node*>* level2_ptr, Node* node, BYTE val)
+		{
+			_followMasked(level2_ptr, node, val, MASK_IMM);
+			_followMasked(level2_ptr, node, val, MASK_PARTIAL1);
+			_followMasked(level2_ptr, node, val, MASK_PARTIAL2);
+			_followMasked(level2_ptr, node, val, MASK_WILDCARD);
+		}
+
 		Signature* sign;
 		BYTE val;
+		BYTE mask;
 		size_t level;
 		std::map<BYTE, Node*> immediates;
+		std::map<BYTE, Node*> partials;
+		std::map<BYTE, Node*> wildcards;
 	};
 
-
-	inline size_t find_all_matches(Node& rootN, const BYTE* loadedData, size_t loadedSize, std::vector<Match> &allMatches)
+	inline size_t find_all_matches(Node& rootN, const BYTE* loadedData, size_t loadedSize, std::vector<Match>& allMatches)
 	{
 		if (!loadedData || !loadedSize) {
 			return 0;
 		}
-		size_t counter = 0;
 		rootN.getMatching(loadedData, loadedSize, allMatches, false);
-		if (allMatches.size()) {
-			counter += allMatches.size();
-		}
-		return counter;
+		return allMatches.size();
 	}
 
 	inline Match find_first_match(Node& rootN, const BYTE* loadedData, size_t loadedSize)
