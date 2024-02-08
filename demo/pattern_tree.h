@@ -3,7 +3,6 @@
 #include <Windows.h>
 #include <iostream>
 #include <string>
-#include <set>
 #include <map>
 #include <vector>
 
@@ -22,16 +21,23 @@ namespace pattern_tree {
 			this->pattern_size = _pattern_size;
 		}
 
+		size_t size()
+		{
+			return pattern_size;
+		}
+
+		std::string name;
+
+	protected:
 		size_t pattern_size;
 		BYTE* pattern;
-		std::string name;
 	};
 
 	class Match
 	{
 	public:
 		Match()
-			: offset(-1), sign(nullptr)
+			: offset(0), sign(nullptr)
 		{
 		}
 
@@ -179,9 +185,9 @@ namespace pattern_tree {
 		}
 
 #define SEARCH_BACK
-		Match getMatching(const BYTE* data, size_t data_size)
+		size_t getMatching(const BYTE* data, size_t data_size, std::vector<Match> &matches, bool stopOnFirst)
 		{
-			Match empty;
+			size_t processed = 0;
 			//
 			ShortList<Node*> level;
 			level.push_back(this);
@@ -192,14 +198,18 @@ namespace pattern_tree {
 
 			for (size_t i = 0; i < data_size; i++)
 			{
+				processed = i; // processed bytes
 				level2_ptr->clear();
 				for (size_t k = 0; k < level1_ptr->size(); k++) {
 					Node * curr = level1_ptr->at(k);
-					if (curr->iSign()) {
-						const size_t match_start = i - curr->sign->pattern_size;
-						return Match(match_start, curr->sign);
+					if (curr->isSign()) {
+						size_t match_start = i - curr->sign->size();
+						Match m(match_start, curr->sign);
+						matches.push_back(m);
+						if (stopOnFirst) {
+							return match_start;
+						}
 					}
-					if (curr->isEnd()) return empty;
 					Node* prev = curr;
 					curr = prev->getNode(data[i]);
 					if (curr) {
@@ -215,13 +225,20 @@ namespace pattern_tree {
 					}
 #endif
 				}
-				if (!level2_ptr->size()) return empty;
+				if (!level2_ptr->size()) {
+#ifdef SEARCH_BACK
+					// restart search from the beginning
+					level2_ptr->push_back(this);
+#else
+					return results;
+#endif //SEARCH_BACK
+				}
 				//swap:
 				auto tmp = level1_ptr;
 				level1_ptr = level2_ptr;
 				level2_ptr = tmp;
 			}
-			return empty;
+			return processed;
 		}
 
 		bool isEnd()
@@ -229,7 +246,7 @@ namespace pattern_tree {
 			return this->immediates.size() ? false : true;
 		}
 
-		bool iSign()
+		bool isSign()
 		{
 			return sign ? true : false;
 		}
@@ -240,5 +257,41 @@ namespace pattern_tree {
 		size_t level;
 		std::map<BYTE, Node*> immediates;
 	};
+
+
+	inline size_t find_all_matches(Node& rootN, const BYTE* loadedData, size_t loadedSize, std::vector<Match> &allMatches)
+	{
+		if (!loadedData || !loadedSize) {
+			return 0;
+		}
+		size_t counter = 0;
+		for (size_t i = 0; i < loadedSize; i++) {
+			size_t processed = rootN.getMatching(loadedData + i, loadedSize - i, allMatches, false);
+			i = processed;
+			if (allMatches.size()) {
+				counter += allMatches.size();
+			}
+		}
+		return counter;
+	}
+
+	inline Match find_first_match(Node& rootN, const BYTE* loadedData, size_t loadedSize)
+	{
+		Match empty;
+		if (!loadedData || !loadedSize) {
+			return empty;
+		}
+		std::vector<Match> allMatches;
+		size_t counter = 0;
+		for (size_t i = 0; i < loadedSize; i++) {
+			size_t processed = rootN.getMatching(loadedData + i, loadedSize - i, allMatches, true);
+			i = processed;
+			if (allMatches.size()) {
+				auto itr = allMatches.begin();
+				return *itr;
+			}
+		}
+		return empty;
+	}
 
 }; //namespace pattern_tree

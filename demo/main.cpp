@@ -101,22 +101,45 @@ void walk_array2(BYTE* loadedData, size_t loadedSize)
 
 	size_t counter = 0;
 	DWORD start = GetTickCount();
-
-	for (size_t i = 0; i < loadedSize; i++) {
-		Match m = rootN->getMatching(loadedData + i, loadedSize - i);
-		if (m.sign) {
-			size_t found = m.offset + i;
-			m.offset = found;
-			i = found;
-			//std::cout << std::hex << m.offset << " : " << m.sign->name << "\n";
-			counter++;
-			
-		}
-	}
-
+	std::vector<Match> allMatches;
+	counter = find_all_matches(*rootN, loadedData, loadedSize, allMatches);
 	DWORD end = GetTickCount();
 	std::cout << __FUNCTION__ << std::dec << " Occ. counted: " << counter << " Time: " << (end - start) << " ms." << std::endl;
 	delete rootN;
+}
+
+void aho_corasic_test()
+{
+	Node rootN;
+	BYTE loadedData[] = "GCATCG";
+	size_t loadedSize = sizeof(loadedData);
+
+	const char* pattern1 = "ACC";
+	Node::addPattern(&rootN, pattern1, (const BYTE*)pattern1, strlen(pattern1));
+
+	const char* pattern2 = "ATC";
+	Node::addPattern(&rootN, pattern2, (const BYTE*)pattern2, strlen(pattern2));
+
+	const char* pattern3 = "CAT";
+	Node::addPattern(&rootN, pattern3, (const BYTE*)pattern3, strlen(pattern3));
+
+	const char* pattern3a = "CATC";
+	Node::addPattern(&rootN, pattern3a, (const BYTE*)pattern3a, strlen(pattern3a));
+
+	const char* pattern4 = "GCG";
+	Node::addPattern(&rootN, pattern4, (const BYTE*)pattern4, strlen(pattern4));
+
+	size_t counter = 0;
+	size_t i = 0;
+	std::vector<Match> allMatches;
+	DWORD start = GetTickCount();
+	counter = find_all_matches(rootN, loadedData, loadedSize, allMatches);
+	DWORD end = GetTickCount();
+	for (auto itr = allMatches.begin(); itr != allMatches.end(); ++itr) {
+		Match m = *itr;
+		std::cout << "Match: " << m.offset << " : " << m.sign->name << "\n";
+	}
+	std::cout << __FUNCTION__ << std::dec << " Occ. counted: " << counter << " Time: " << (end - start) << " ms." << std::endl;
 }
 
 int main(int argc, char *argv[])
@@ -125,6 +148,8 @@ int main(int argc, char *argv[])
 		std::cout << " Args: <filename>\n";
 		return 0;
 	}
+
+	aho_corasic_test();
 
 	size_t loadedSize = 0;
 	BYTE *loadedData = load_file(argv[1], loadedSize);
