@@ -60,7 +60,12 @@ namespace pattern_tree {
 
 		bool push_back(Element n)
 		{
-			if (elCount >= _countof(list)) return false;
+			if (elCount >= _countof(list)) {
+				return false;
+			}
+			if (find(n)) {
+				return true;
+			}
 			list[elCount] = n;
 			elCount++;
 			return true;
@@ -70,6 +75,16 @@ namespace pattern_tree {
 		{
 			if (i < _countof(list)) {
 				return list[i];
+			}
+			return nullptr;
+		}
+
+		Element find(Element& searched)
+		{
+			for (size_t i = 0; i < elCount; i++) {
+				if (list[i] == searched) {
+					return list[i];
+				}
 			}
 			return nullptr;
 		}
@@ -86,7 +101,7 @@ namespace pattern_tree {
 
 	protected:
 		size_t elCount;
-		Element list[1000];
+		Element list[100];
 	};
 
 	class Node
@@ -163,6 +178,7 @@ namespace pattern_tree {
 			}
 		}
 
+#define SEARCH_BACK
 		Match getMatching(const BYTE* data, size_t data_size)
 		{
 			Match empty;
@@ -184,11 +200,20 @@ namespace pattern_tree {
 						return Match(match_start, curr->sign);
 					}
 					if (curr->isEnd()) return empty;
-
-					curr = curr->getNode(data[i]);
+					Node* prev = curr;
+					curr = prev->getNode(data[i]);
 					if (curr) {
 						level2_ptr->push_back(curr);
 					}
+#ifdef SEARCH_BACK
+					if (prev != this) {
+						// the current value may also be a beginning of a new pattern:
+						Node* start = this->getNode(data[i]);
+						if (start) {
+							level2_ptr->push_back(start);
+						}
+					}
+#endif
 				}
 				if (!level2_ptr->size()) return empty;
 				//swap:

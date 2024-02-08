@@ -88,7 +88,7 @@ void walk_array2(BYTE* loadedData, size_t loadedSize)
 
 	const BYTE pattern[] = { 0x40, 0x53, 0x48, 0x83, 0xec };
 	Node::addPattern(rootN, "prolog32_1", pattern, sizeof(pattern));
-
+	
 	const BYTE pattern2[] = { 0x55, 0x48, 0x8B, 0xec };
 	Node::addPattern(rootN, "prolog32_2", pattern2, sizeof(pattern2));
 
@@ -105,15 +105,18 @@ void walk_array2(BYTE* loadedData, size_t loadedSize)
 	for (size_t i = 0; i < loadedSize; i++) {
 		Match m = rootN->getMatching(loadedData + i, loadedSize - i);
 		if (m.sign) {
-			m.offset += i;
+			size_t found = m.offset + i;
+			m.offset = found;
+			i = found;
 			//std::cout << std::hex << m.offset << " : " << m.sign->name << "\n";
 			counter++;
+			
 		}
 	}
 
 	DWORD end = GetTickCount();
 	std::cout << __FUNCTION__ << std::dec << " Occ. counted: " << counter << " Time: " << (end - start) << " ms." << std::endl;
-
+	delete rootN;
 }
 
 int main(int argc, char *argv[])
