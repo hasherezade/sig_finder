@@ -54,13 +54,13 @@ namespace pattern_tree {
 	{
 	public:
 		ShortList()
-			: elMax(100), elCount(0)
+			: elCount(0)
 		{
 		}
 
 		bool push_back(Element n)
 		{
-			if (elCount >= elMax) return false;
+			if (elCount >= _countof(list)) return false;
 			list[elCount] = n;
 			elCount++;
 			return true;
@@ -68,7 +68,7 @@ namespace pattern_tree {
 
 		Element at(size_t i)
 		{
-			if (i < elCount) {
+			if (i < _countof(list)) {
 				return list[i];
 			}
 			return nullptr;
@@ -85,9 +85,8 @@ namespace pattern_tree {
 		}
 
 	protected:
-		const size_t elMax;
 		size_t elCount;
-		Element list[100];
+		Element list[1000];
 	};
 
 	class Node
