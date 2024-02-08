@@ -28,22 +28,26 @@ BYTE* load_file(const char* filename, size_t& buf_size)
 void init_byte_signs(sig_ma::SigFinder &signFinder)
 {
 	DWORD start = GetTickCount();
+	/*
+	const BYTE pattern3[] =      { 0x40, 0x55, 0x48, 0x83, 0xec };
+	const BYTE pattern3_mask[] = { 0xFF, 0xF0, 0xFF, 0xFF, 0xFF };
+	*/
 	// 32 bit
-	signFinder.loadSignature("prolog32_1", "55 8b ec");
+	//signFinder.loadSignature("prolog32_1", "55 8b ec");
 
-	signFinder.loadSignature("prolog32_2", "55 89 e5");
-	signFinder.loadSignature("prolog32_3", "60 89 ec");
+	//signFinder.loadSignature("prolog32_2", "55 89 e5");
+	//signFinder.loadSignature("prolog32_3", "60 89 ec");
 
 	// 64 bit
-	signFinder.loadSignature("prolog64_1", "40 53 48 83 ec");
-	signFinder.loadSignature("prolog64_2", "55 48 8B EC");
-	signFinder.loadSignature("prolog64_3", "40 55 48 83 EC");
+	signFinder.loadSignature("prolog64_1", "40 5? 48 83 ec");
+	//signFinder.loadSignature("prolog64_2", "55 48 8B EC");
+	//signFinder.loadSignature("prolog64_3", "40 55 48 83 EC");
 
-	signFinder.loadSignature("prolog64_4", "53 48 81 EC");
-	signFinder.loadSignature("prolog64_5", "48 83 E4 f0");
-	signFinder.loadSignature("prolog64_6", "57 48 89 E7");
+	//signFinder.loadSignature("prolog64_4", "53 48 81 EC");
+	//signFinder.loadSignature("prolog64_5", "48 83 E4 f0");
+	//signFinder.loadSignature("prolog64_6", "57 48 89 E7");
 
-	signFinder.loadSignature("prolog64_7", "48 8B C4 48 89 58 08 4C 89 48 20 4C 89 40 18 48 89 50 10 55 56 57 41 54 41 55 41 56 41 57");
+	//signFinder.loadSignature("prolog64_7", "48 8B C4 48 89 58 08 4C 89 48 20 4C 89 40 18 48 89 50 10 55 56 57 41 54 41 55 41 56 41 57");
 
 	DWORD end = GetTickCount();
 	std::cout << "Init signs finished in: " << (end - start) << " ms." << "\n";
@@ -64,6 +68,26 @@ inline bool is_matching(const BYTE* loadedData, const size_t loadedSize, const B
 	return true;
 }
 
+#include <iostream>
+#include <iomanip>
+#include <sstream>
+
+inline std::string to_hex(const uint8_t val, int width = 2)
+{
+	std::stringstream ss;
+	ss << std::setw(width) << std::setfill('0') << std::hex << (unsigned int)(val);
+	return ss.str();
+}
+
+void show_hex_preview(BYTE* loadedData, size_t loadedSize, size_t offset, size_t previewSize)
+{
+	if (!previewSize || !loadedSize) return;
+	for (size_t i = offset; i < loadedSize; i++) {
+		if ((i - offset) >= previewSize) break;
+		std::cout << to_hex(loadedData[i]) << " ";
+	}
+	std::cout << std::endl;
+}
 
 void walk_array1(BYTE* loadedData, size_t loadedSize)
 {
@@ -90,8 +114,10 @@ size_t find_matches(Node &rootN, BYTE loadedData[], size_t loadedSize, bool show
 	DWORD end = GetTickCount();
 	for (auto itr = allMatches.begin(); itr != allMatches.end(); ++itr) {
 		Match m = *itr;
-		if (showMatches)
-			std::cout << "Match: " << m.offset << " : " << m.sign->name << "\n";
+		if (showMatches) {
+			std::cout << "Match: " << std::hex << m.offset << " : " << m.sign->name << " : "<< m.sign->size() << "\t";
+			show_hex_preview(loadedData, loadedSize, m.offset, m.sign->size());
+		}
 	}
 	std::cout << __FUNCTION__ << std::dec << " Occ. counted: " << counter << " Time: " << (end - start) << " ms." << std::endl;
 	return counter;
@@ -102,16 +128,17 @@ void walk_array2(BYTE* loadedData, size_t loadedSize)
 {
 	Node rootN;
 
-	const BYTE pattern[] = { 0x40, 0x53, 0x48, 0x83, 0xec };
-	Node::addPattern(&rootN, "prolog32_1", pattern, sizeof(pattern));
+	//const BYTE pattern[] = { 0x40, 0x53, 0x48, 0x83, 0xec };
+	//Node::addPattern(&rootN, "prolog32_1", pattern, sizeof(pattern));
 	
-	const BYTE pattern2[] = { 0x55, 0x48, 0x8B, 0xec };
-	Node::addPattern(&rootN, "prolog32_2", pattern2, sizeof(pattern2));
+	//const BYTE pattern2[] = { 0x55, 0x48, 0x8B, 0xec };
+	//Node::addPattern(&rootN, "prolog32_2", pattern2, sizeof(pattern2));
 
-	const BYTE pattern3[] = { 0x40, 0x55, 0x48, 0x83, 0xec };
-	Node::addPattern(&rootN, "prolog32_3", pattern3, sizeof(pattern3));
+	const BYTE pattern3[] =      { 0x40, 0x55, 0x48, 0x83, 0xec };
+	const BYTE pattern3_mask[] = { 0xFF, 0xF0, 0xFF, 0xFF, 0xFF };
+	Node::addPattern(&rootN, "prolog32_3", pattern3, sizeof(pattern3), pattern3_mask);
 
-	Node::addTextPattern(&rootN, "module");
+	//Node::addTextPattern(&rootN, "module");
 
 	find_matches(rootN, loadedData, loadedSize, false);
 }
@@ -224,13 +251,13 @@ int main(int argc, char *argv[])
 
 	sig_ma::SigFinder signFinder;
 
-	//init_byte_signs(signFinder);
-	init_string_signs(signFinder);
+	init_byte_signs(signFinder);
+	//init_string_signs(signFinder);
 
-	for (size_t i = 0; i < 20; i++) {
+	//for (size_t i = 0; i < 20; i++) {
 		//walk_array1(loadedData, loadedSize);
 		walk_array2(loadedData, loadedSize);
-	}
+	//}
 
 	DWORD start = GetTickCount();
 	sig_ma::matched_set mS = signFinder.getMatching(loadedData, loadedSize, 0, sig_ma::FRONT_TO_BACK, false);

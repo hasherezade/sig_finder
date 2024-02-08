@@ -8,22 +8,27 @@
 
 #define MASK_IMM 0xFF
 #define MASK_PARTIAL1 0x0F
-#define MASK_PARTIAL2 0x0F
-#define MASK_WILDCARD 0x00
+#define MASK_PARTIAL2 0xF0
+#define MASK_WILDCARD 0
 
 namespace pattern_tree {
 
 	class Signature
 	{
 	public:
-		Signature(std::string _name, const BYTE* _pattern, size_t _pattern_size)
-			: name(_name), pattern(nullptr), pattern_size(0)
+		Signature(std::string _name, const BYTE* _pattern, size_t _pattern_size, const BYTE* _mask)
+			: name(_name), pattern(nullptr), pattern_size(0), mask(nullptr)
 		{
 			this->pattern = (BYTE*)::calloc(_pattern_size, 1);
 			if (!this->pattern) return;
 
 			::memcpy(this->pattern, _pattern, _pattern_size);
 			this->pattern_size = _pattern_size;
+
+			if (_mask) {
+				this->mask = (BYTE*)::calloc(_pattern_size, 1);
+				::memcpy(this->mask, _mask, _pattern_size);
+			}
 		}
 
 		size_t size()
@@ -36,6 +41,7 @@ namespace pattern_tree {
 	protected:
 		size_t pattern_size;
 		BYTE* pattern;
+		BYTE* mask;
 	};
 
 	class Match
@@ -126,11 +132,11 @@ namespace pattern_tree {
 			}
 			Node* next = rootN;
 			for (size_t i = 0; i < pattern_size; i++) {
-				BYTE mask = pattern_mask ? pattern_mask[i] : MASK_IMM;
+				BYTE mask = (pattern_mask != nullptr) ? pattern_mask[i] : MASK_IMM;
 				next = next->addNext(pattern[i], mask);
 				if (!next) return false;
 			}
-			next->sign = new Signature(_name, pattern, pattern_size);
+			next->sign = new Signature(_name, pattern, pattern_size, pattern_mask);
 			return true;
 		}
 
@@ -180,18 +186,28 @@ namespace pattern_tree {
 			return nullptr;
 		}
 
-		Node* addNext(BYTE _val, BYTE _mask = MASK_IMM)
+		Node* addNext(BYTE _val, BYTE _mask)
 		{
 			Node* nextN = getNode(_val, _mask);
-			if (!nextN) {
-				BYTE maskedVal = _val & _mask;
-				nextN = new Node(_val, this->level + 1, _mask);
-				if (_mask == MASK_IMM)
-					immediates[maskedVal] = nextN;
-				else if (_mask == MASK_PARTIAL1 || _mask == MASK_PARTIAL2)
-					partials[maskedVal] = nextN;
-				else if (mask == MASK_WILDCARD)
-					wildcards[maskedVal] = nextN;
+			if (nextN) {
+				return nextN;
+			}
+
+			BYTE maskedVal = _val & _mask;
+			nextN = new Node(_val, this->level + 1, _mask);
+			if (_mask == MASK_IMM) {
+				immediates[maskedVal] = nextN;
+			}
+			else if (_mask == MASK_PARTIAL1 || _mask == MASK_PARTIAL2) {
+				partials[maskedVal] = nextN;
+			}
+			else if (_mask == MASK_WILDCARD) {
+				wildcards[maskedVal] = nextN;
+			}
+			else {
+				delete nextN;
+				std::cout << "Invalid mask supplied for value: " << std::hex << (unsigned int)_val << " Mask:" << (unsigned int)_mask << "\n";
+				return nullptr; // invalid mask
 			}
 			return nextN;
 		}
