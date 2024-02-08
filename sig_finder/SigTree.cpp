@@ -93,18 +93,22 @@ void SigTree::insertPckrSign(PckrSign* sign)
 		this->max_siglen = len;
 }
 
-bool SigTree::_storeFound(SigNode *nextC, std::vector<SigNode*>& level2, matched &matchedSet)
+
+bool SigTree::_storeFound(SigNode* nextC, ShortList<SigNode*>* level2, matched& matchedSet)
 {
 	if (!nextC) {
 		return false;
 	}
-	PckrSign *sig = this->nodeToSign[nextC];
+	PckrSign* sig = this->nodeToSign[nextC];
 	if (sig) {
 		matchedSet.signs.insert(sig);
 	}
-	level2.push_back(nextC);
+	if (level2) {
+		level2->push_back(nextC);
+	}
 	return true;
 }
+
 
 matched SigTree::getMatching(const uint8_t *buf, const size_t buf_len, bool skipNOPs)
 {
@@ -113,8 +117,12 @@ matched SigTree::getMatching(const uint8_t *buf, const size_t buf_len, bool skip
 
 	if (!buf || !buf_len) return matchedSet; // Empty
 
-	std::vector<SigNode*> level;
+	ShortList<SigNode*> level;
 	level.push_back(&root);
+	auto level1_ptr = &level;
+
+	ShortList<SigNode*> level2;
+	auto level2_ptr = &level2;
 
 	size_t start_offset = 0;
 
@@ -123,19 +131,17 @@ matched SigTree::getMatching(const uint8_t *buf, const size_t buf_len, bool skip
 	for (size_t indx = start_offset; indx < buf_len; indx++) {
 
 		const uint8_t bufChar = buf[indx];
-		std::vector<SigNode*> level2;
+		level2_ptr->clear();
 		
-		for (std::vector<SigNode*>::const_iterator lvlI = level.begin(); lvlI != level.end(); ++lvlI) {
-			const SigNode* currNode = (*lvlI);
+		for (size_t k = 0; k < level1_ptr->size(); k++) {
+			const SigNode* currNode = level1_ptr->at(k);
 			if (!currNode) continue;
 
-			size_t prev = level2.size();
-			
 			// allow for alternate sig search paths: with wildcards AND with exact matches
-			_storeFound(currNode->getChild(bufChar), level2, matchedSet);
-			_storeFound(currNode->getPartial(bufChar & 0xF0), level2, matchedSet);
-			_storeFound(currNode->getPartial(bufChar & 0x0F), level2, matchedSet);
-			_storeFound(currNode->getWildc(), level2, matchedSet);
+			_storeFound(currNode->getChild(bufChar), level2_ptr, matchedSet);
+			_storeFound(currNode->getPartial(bufChar & 0xF0), level2_ptr, matchedSet);
+			_storeFound(currNode->getPartial(bufChar & 0x0F), level2_ptr, matchedSet);
+			_storeFound(currNode->getWildc(), level2_ptr, matchedSet);
 
 			/*if (level2.size() > prev) {
 				std::cout << indx << " CurrVal: " << std::hex << (unsigned int)currNode->val << " : " << currNode->val << "\n";
@@ -143,17 +149,13 @@ matched SigTree::getMatching(const uint8_t *buf, const size_t buf_len, bool skip
 		}
 
 		//-----
-		if (level2.size() == 0) {
-			if (buf[indx] == OP_NOP && skipNOPs) { //skip NOPs
-				if (checked == 0) {
-					matchedSet.match_offset++;
-				}
-				skipped++;
-				continue;
-			}
+		if (!level2_ptr->size()) {
 			break;
 		}
-		level = level2;
+		//swap:
+		auto tmp = level1_ptr;
+		level1_ptr = level2_ptr;
+		level2_ptr = tmp;
 		checked++;
 	}
 	return matchedSet;

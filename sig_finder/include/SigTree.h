@@ -15,6 +15,7 @@
 
 #include "SigNode.h"
 #include "PckrSign.h"
+#include "ShortList.h"
 
 namespace sig_ma {
 //------------------
@@ -69,7 +70,7 @@ protected:
 	size_t max_siglen;
 
 private:
-	bool _storeFound(SigNode *nextC, std::vector<SigNode*>& level2, matched &matchedSet);
+	bool _storeFound(SigNode *nextC, ShortList<SigNode*>* level2, matched &matchedSet);
 
 	void clear(); //destroys all the signatures!
 
