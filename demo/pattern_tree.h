@@ -265,12 +265,9 @@ namespace pattern_tree {
 			return 0;
 		}
 		size_t counter = 0;
-		for (size_t i = 0; i < loadedSize; i++) {
-			size_t processed = rootN.getMatching(loadedData + i, loadedSize - i, allMatches, false);
-			i = processed;
-			if (allMatches.size()) {
-				counter += allMatches.size();
-			}
+		rootN.getMatching(loadedData, loadedSize, allMatches, false);
+		if (allMatches.size()) {
+			counter += allMatches.size();
 		}
 		return counter;
 	}
@@ -282,14 +279,10 @@ namespace pattern_tree {
 			return empty;
 		}
 		std::vector<Match> allMatches;
-		size_t counter = 0;
-		for (size_t i = 0; i < loadedSize; i++) {
-			size_t processed = rootN.getMatching(loadedData + i, loadedSize - i, allMatches, true);
-			i = processed;
-			if (allMatches.size()) {
-				auto itr = allMatches.begin();
-				return *itr;
-			}
+		rootN.getMatching(loadedData, loadedSize, allMatches, true);
+		if (allMatches.size()) {
+			auto itr = allMatches.begin();
+			return *itr;
 		}
 		return empty;
 	}
