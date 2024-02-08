@@ -82,74 +82,138 @@ void walk_array1(BYTE* loadedData, size_t loadedSize)
 	std::cout << __FUNCTION__ << " Occ. counted: " << counter << " Time: " << (end - start) << " ms." << std::endl;
 }
 
-void walk_array2(BYTE* loadedData, size_t loadedSize)
+size_t find_matches(Node &rootN, BYTE loadedData[], size_t loadedSize)
 {
-	Node* rootN = new Node();
-
-	const BYTE pattern[] = { 0x40, 0x53, 0x48, 0x83, 0xec };
-	Node::addPattern(rootN, "prolog32_1", pattern, sizeof(pattern));
-	
-	const BYTE pattern2[] = { 0x55, 0x48, 0x8B, 0xec };
-	Node::addPattern(rootN, "prolog32_2", pattern2, sizeof(pattern2));
-
-	const BYTE pattern3[] = { 0x40, 0x55, 0x48, 0x83, 0xec };
-	Node::addPattern(rootN, "prolog32_3", pattern3, sizeof(pattern3));
-
-	const char* patternM = "module";
-	Node::addPattern(rootN, "module", (const BYTE*)patternM, strlen(patternM));
-	//rootN->print();
-
-	size_t counter = 0;
-	DWORD start = GetTickCount();
-	std::vector<Match> allMatches;
-	counter = find_all_matches(*rootN, loadedData, loadedSize, allMatches);
-	DWORD end = GetTickCount();
-	std::cout << __FUNCTION__ << std::dec << " Occ. counted: " << counter << " Time: " << (end - start) << " ms." << std::endl;
-	delete rootN;
-}
-
-void aho_corasic_test()
-{
-	Node rootN;
-	BYTE loadedData[] = "GCATCG";
-	size_t loadedSize = sizeof(loadedData);
-
-	const char* pattern1 = "ACC";
-	Node::addPattern(&rootN, pattern1, (const BYTE*)pattern1, strlen(pattern1));
-
-	const char* pattern2 = "ATC";
-	Node::addPattern(&rootN, pattern2, (const BYTE*)pattern2, strlen(pattern2));
-
-	const char* pattern3 = "CAT";
-	Node::addPattern(&rootN, pattern3, (const BYTE*)pattern3, strlen(pattern3));
-
-	const char* pattern3a = "CATC";
-	Node::addPattern(&rootN, pattern3a, (const BYTE*)pattern3a, strlen(pattern3a));
-
-	const char* pattern4 = "GCG";
-	Node::addPattern(&rootN, pattern4, (const BYTE*)pattern4, strlen(pattern4));
-
-	size_t counter = 0;
-	size_t i = 0;
 	std::vector<Match> allMatches;
 	DWORD start = GetTickCount();
-	counter = find_all_matches(rootN, loadedData, loadedSize, allMatches);
+	size_t counter = find_all_matches(rootN, loadedData, loadedSize, allMatches);
 	DWORD end = GetTickCount();
 	for (auto itr = allMatches.begin(); itr != allMatches.end(); ++itr) {
 		Match m = *itr;
 		std::cout << "Match: " << m.offset << " : " << m.sign->name << "\n";
 	}
 	std::cout << __FUNCTION__ << std::dec << " Occ. counted: " << counter << " Time: " << (end - start) << " ms." << std::endl;
+	return counter;
+}
+
+
+void walk_array2(BYTE* loadedData, size_t loadedSize)
+{
+	Node rootN;
+
+	const BYTE pattern[] = { 0x40, 0x53, 0x48, 0x83, 0xec };
+	Node::addPattern(&rootN, "prolog32_1", pattern, sizeof(pattern));
+	
+	const BYTE pattern2[] = { 0x55, 0x48, 0x8B, 0xec };
+	Node::addPattern(&rootN, "prolog32_2", pattern2, sizeof(pattern2));
+
+	const BYTE pattern3[] = { 0x40, 0x55, 0x48, 0x83, 0xec };
+	Node::addPattern(&rootN, "prolog32_3", pattern3, sizeof(pattern3));
+
+	Node::addTextPattern(&rootN, "module");
+
+	find_matches(rootN, loadedData, loadedSize);
+}
+
+bool aho_corasic_test()
+{
+	Node rootN;
+	BYTE loadedData[] = "GCATCG";
+	size_t loadedSize = sizeof(loadedData);
+
+	Node::addTextPattern(&rootN, "ACC");
+	Node::addTextPattern(&rootN, "ATC");
+	Node::addTextPattern(&rootN, "CAT");
+	Node::addTextPattern(&rootN, "CATC");
+	Node::addTextPattern(&rootN, "GCG");
+
+	if (find_matches(rootN, loadedData, loadedSize) == 3) {
+		return true;
+	}
+	std::cerr << __FUNCTION__ << " : Test failed.\n";
+	return false;
+}
+
+bool aho_corasic_test2()
+{
+	Node rootN;
+	BYTE loadedData[] = "ushers";
+	size_t loadedSize = sizeof(loadedData);
+
+	Node::addTextPattern(&rootN, "hers");
+	Node::addTextPattern(&rootN, "his");
+	Node::addTextPattern(&rootN, "he");
+	Node::addTextPattern(&rootN, "she");
+	if (find_matches(rootN, loadedData, loadedSize) == 3) {
+		return true;
+	}
+	std::cerr << __FUNCTION__ << " : Test failed.\n";
+	return false;
+}
+
+bool aho_corasic_test3()
+{
+	Node rootN;
+
+	BYTE loadedData[] = "h he her hers";
+	size_t loadedSize = sizeof(loadedData);
+
+	Node::addTextPattern(&rootN, "hers");
+	if (find_matches(rootN, loadedData, loadedSize) == 1) {
+		return true;
+	}
+	std::cerr << __FUNCTION__ << " : Test failed.\n";
+	return false;
+}
+
+bool aho_corasic_test4()
+{
+	Node rootN;
+
+	BYTE loadedData[] = "hehehehehe";
+	size_t loadedSize = sizeof(loadedData);
+
+	Node::addTextPattern(&rootN, "he");
+	Node::addTextPattern(&rootN, "hehehehe");
+	if (find_matches(rootN, loadedData, loadedSize) == 7) {
+		return true;
+	}
+	std::cerr << __FUNCTION__ << " : Test failed.\n";
+	return false;
+}
+
+bool aho_corasic_test5()
+{
+	Node rootN;
+
+	BYTE loadedData[] = "something";
+	size_t loadedSize = sizeof(loadedData);
+
+	Node::addTextPattern(&rootN, "hers");
+	Node::addTextPattern(&rootN, "his");
+	Node::addTextPattern(&rootN, "he");
+
+	if (find_matches(rootN, loadedData, loadedSize) == 0) {
+		return true;
+	}
+	std::cerr << __FUNCTION__ << " : Test failed.\n";
+	return false;
 }
 
 int main(int argc, char *argv[])
 {
+
+	aho_corasic_test();
+	aho_corasic_test2();
+	aho_corasic_test3();
+	aho_corasic_test4();
+	aho_corasic_test5();
+
 	if (argc < 2) {
 		std::cout << " Args: <filename>\n";
 		return 0;
 	}
-
-	aho_corasic_test();
+	/*
 
 	size_t loadedSize = 0;
 	BYTE *loadedData = load_file(argv[1], loadedSize);
@@ -173,7 +237,7 @@ int main(int argc, char *argv[])
 	DWORD end = GetTickCount();
 
 	std::cout << "All matched: " << mS.size() << " Time: " << (end - start) << " ms." << std::endl;
-
+	*/
 #ifdef _PRINT_ALL
 	for (auto itr = mS.matchedSigns.begin(); itr != mS.matchedSigns.end(); ++itr) {
 		std::cout << "Offset: " << std::hex << itr->match_offset << "\n";
@@ -181,5 +245,6 @@ int main(int argc, char *argv[])
 		std::cout << "----\n";
 	}
 #endif
+	std::cout << "Finished!\n";
 	return 0;
 }
