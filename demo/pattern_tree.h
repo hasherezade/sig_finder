@@ -27,7 +27,9 @@ namespace pattern_tree {
 
 			if (_mask) {
 				this->mask = (BYTE*)::calloc(_pattern_size, 1);
-				::memcpy(this->mask, _mask, _pattern_size);
+				if (this->mask) {
+					::memcpy(this->mask, _mask, _pattern_size);
+				}
 			}
 		}
 
