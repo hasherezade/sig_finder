@@ -16,6 +16,9 @@ namespace pattern_tree {
 	class Signature
 	{
 	public:
+
+		static Signature* loadFromByteStr(const std::string& signName, const std::string& content);
+
 		Signature(std::string _name, const BYTE* _pattern, size_t _pattern_size, const BYTE* _mask)
 			: name(_name), pattern(nullptr), pattern_size(0), mask(nullptr)
 		{
@@ -44,10 +47,11 @@ namespace pattern_tree {
 			return pattern_size;
 		}
 
+		std::string toByteStr();
+
 		std::string name;
 
 	protected:
-
 		size_t pattern_size;
 		BYTE* pattern;
 		BYTE* mask;
@@ -175,7 +179,7 @@ namespace pattern_tree {
 			return Node::addPattern(rootN, pattern1, (const BYTE*)pattern1, strlen(pattern1));
 		}
 
-		static bool addSignature(Node* rootN, const Signature& sign)
+		static bool addPattern(Node* rootN, const Signature& sign)
 		{
 			return addPattern(rootN, sign.name.c_str(), sign.pattern, sign.pattern_size, sign.mask);
 		}
@@ -196,11 +200,9 @@ namespace pattern_tree {
 
 		~Node()
 		{
-			for (auto itr = immediates.begin(); itr != immediates.end(); ++itr) {
-				Node* next = itr->second;
-				delete next;
-			}
-			immediates.clear();
+			_deleteChildren(immediates);
+			_deleteChildren(partials);
+			_deleteChildren(wildcards);
 			if (sign) {
 				delete sign;
 			}
@@ -322,6 +324,9 @@ namespace pattern_tree {
 	protected:
 		Node* _findInChildren(std::map<BYTE, Node*>& children, BYTE _val)
 		{
+			if (!children.size()) {
+				return nullptr;
+			}
 			auto found = children.find(_val);
 			if (found != children.end()) {
 				return found->second;
@@ -344,6 +349,15 @@ namespace pattern_tree {
 			_followMasked(level2_ptr, node, val, MASK_PARTIAL1);
 			_followMasked(level2_ptr, node, val, MASK_PARTIAL2);
 			_followMasked(level2_ptr, node, val, MASK_WILDCARD);
+		}
+
+		void _deleteChildren(std::map<BYTE, Node*>& children)
+		{
+			for (auto itr = children.begin(); itr != children.end(); ++itr) {
+				Node* next = itr->second;
+				delete next;
+			}
+			children.clear();
 		}
 
 		Signature* sign;

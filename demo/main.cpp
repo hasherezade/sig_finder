@@ -39,7 +39,7 @@ void init_byte_signs(sig_ma::SigFinder &signFinder)
 	//signFinder.loadSignature("prolog32_3", "60 89 ec");
 
 	// 64 bit
-	signFinder.loadSignature("prolog64_1", "40 5? 48 83 ec");
+	signFinder.loadSignature("prolog64_1", "40 ?? 4? 8? e?");
 	//signFinder.loadSignature("prolog64_2", "55 48 8B EC");
 	//signFinder.loadSignature("prolog64_3", "40 55 48 83 EC");
 
@@ -108,6 +108,7 @@ void walk_array1(BYTE* loadedData, size_t loadedSize)
 
 size_t find_matches(Node &rootN, BYTE loadedData[], size_t loadedSize, bool showMatches = true)
 {
+	std::cout << "Input: " << loadedData << " : " << loadedSize << std::endl;
 	std::vector<Match> allMatches;
 	DWORD start = GetTickCount();
 	size_t counter = find_all_matches(rootN, loadedData, loadedSize, allMatches);
@@ -130,16 +131,24 @@ void walk_array2(BYTE* loadedData, size_t loadedSize)
 
 	//const BYTE pattern[] = { 0x40, 0x53, 0x48, 0x83, 0xec };
 	//Node::addPattern(&rootN, "prolog32_1", pattern, sizeof(pattern));
-	
+
 	//const BYTE pattern2[] = { 0x55, 0x48, 0x8B, 0xec };
 	//Node::addPattern(&rootN, "prolog32_2", pattern2, sizeof(pattern2));
 
-	const BYTE pattern3[] =      { 0x40, 0x55, 0x48, 0x83, 0xec };
-	const BYTE pattern3_mask[] = { 0xFF, 0xF0, 0xFF, 0xFF, 0xFF };
-	Node::addPattern(&rootN, "prolog32_3", pattern3, sizeof(pattern3), pattern3_mask);
+	const BYTE pattern3[] = { 0x40, 0x55, 0x48, 0x83, 0xec };
+	const BYTE pattern3_mask[] = { 0xFF, 0x00, 0xF0, 0xF0, 0xF0 };
+	Signature sign("prolog32_3", pattern3, sizeof(pattern3), pattern3_mask);
+
+	std::cout << sign.name << " : " << sign.toByteStr() << "\n";
 
 	//Node::addTextPattern(&rootN, "module");
-
+	Signature* sign1 = Signature::loadFromByteStr("prolog1", "40 ?? 4? 8? e?");
+	std::cout << sign1->name << " : " << sign1->toByteStr() << "\n";
+	if (!sign1) {
+		std::cout << "Could not load the signature!\n";
+		return;
+	}
+	Node::addPattern(&rootN, *sign1);
 	find_matches(rootN, loadedData, loadedSize, false);
 }
 
@@ -263,7 +272,8 @@ int main(int argc, char *argv[])
 	sig_ma::matched_set mS = signFinder.getMatching(loadedData, loadedSize, 0, sig_ma::FRONT_TO_BACK, false);
 	DWORD end = GetTickCount();
 
-	std::cout << "All matched: " << mS.size() << " Time: " << (end - start) << " ms." << std::endl;
+	std::cout << "Old matcher" << std::dec << " Occ. counted: " << mS.size() << " Time: " << (end - start) << " ms." << std::endl;
+	//std::cout << "All matched: " << mS.size() << " Time: " << (end - start) << " ms." << std::endl;
 
 #ifdef _PRINT_ALL
 	for (auto itr = mS.matchedSigns.begin(); itr != mS.matchedSigns.end(); ++itr) {
