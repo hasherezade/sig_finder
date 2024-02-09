@@ -1,8 +1,36 @@
 #include "pattern_tree.h"
 #include <sstream>
+#include <fstream>
 
 #include <iostream>
 #include <iomanip>
+//--------------------------------------
+
+#include <ctype.h>
+namespace pattern_tree {
+
+	namespace util {
+
+		std::string& ltrim(std::string& str, const std::string& chars = "\t\n\v\f\r ")
+		{
+			str.erase(0, str.find_first_not_of(chars));
+			return str;
+		}
+
+		std::string& rtrim(std::string& str, const std::string& chars = "\t\n\v\f\r ")
+		{
+			str.erase(str.find_last_not_of(chars) + 1);
+			return str;
+		}
+
+		std::string& trim(std::string& str, const std::string& chars = "\t\n\v\f\r ")
+		{
+			return ltrim(rtrim(str, chars), chars);
+		}
+	}
+};
+
+//--------------------------------------
 
 using namespace pattern_tree;
 
@@ -116,4 +144,62 @@ Signature* Signature::loadFromByteStr(const std::string& signName, const std::st
 	free(pattern);
 	free(mask);
 	return sign;
+}
+
+
+size_t Signature::loadFromFile(std::ifstream& input, std::vector<Signature*> &signatures)
+{
+	if (!input.is_open()) return 0;
+
+	while (!input.eof()) {
+		std::string line;
+
+		// read signature name
+		if (!std::getline(input, line)) break;
+
+		std::string signName = util::trim(line);
+
+		// read signature size
+		if (!std::getline(input, line)) break;
+		int signSize = 0;
+		std::stringstream iss1;
+		iss1 << std::dec << line;
+		iss1 >> signSize; //read the expected size
+		if (signSize == 0) continue;
+
+		const size_t buf_max = signSize;
+		BYTE* pattern = (BYTE*)::calloc(buf_max, 1);
+		BYTE* mask = (BYTE*)::calloc(buf_max, 1);
+		if (!pattern || !mask) return false;
+
+		bool isOk = false;
+		size_t indx = 0;
+		// parse all the nodes one by one
+		while (!input.eof() && indx < buf_max) {
+
+			// parse all chunks from the line
+			char chunk[3] = { 0, 0, 0 };
+			input >> chunk[0];
+			if (input.eof()) {
+				break;
+			}
+			input >> chunk[1];
+			if (!parseSigNode(chunk, pattern[indx], mask[indx])) {
+				isOk = false;
+				break;
+			}
+		}
+		// check if the signature is valid:
+		if (indx != signSize) {
+			isOk = false;
+		}
+		Signature* sign = nullptr;
+		if (isOk) {
+			sign = new Signature(signName, pattern, indx, mask);
+			signatures.push_back(sign);
+		}
+		free(pattern);
+		free(mask);
+	}
+	return signatures.size();
 }

@@ -130,10 +130,10 @@ void walk_array2(BYTE* loadedData, size_t loadedSize)
 	Node rootN;
 
 	//const BYTE pattern[] = { 0x40, 0x53, 0x48, 0x83, 0xec };
-	//Node::addPattern(&rootN, "prolog32_1", pattern, sizeof(pattern));
+	//rootN.addPattern("prolog32_1", pattern, sizeof(pattern));
 
 	//const BYTE pattern2[] = { 0x55, 0x48, 0x8B, 0xec };
-	//Node::addPattern(&rootN, "prolog32_2", pattern2, sizeof(pattern2));
+	//rootN.addPattern("prolog32_2", pattern2, sizeof(pattern2));
 
 	const BYTE pattern3[] = { 0x40, 0x55, 0x48, 0x83, 0xec };
 	const BYTE pattern3_mask[] = { 0xFF, 0x00, 0xF0, 0xF0, 0xF0 };
@@ -141,14 +141,14 @@ void walk_array2(BYTE* loadedData, size_t loadedSize)
 
 	std::cout << sign.name << " : " << sign.toByteStr() << "\n";
 
-	//Node::addTextPattern(&rootN, "module");
+	//rootN.addTextPattern("module");
 	Signature* sign1 = Signature::loadFromByteStr("prolog1", "40 ?? 4? 8? e?");
 	std::cout << sign1->name << " : " << sign1->toByteStr() << "\n";
 	if (!sign1) {
 		std::cout << "Could not load the signature!\n";
 		return;
 	}
-	Node::addPattern(&rootN, *sign1);
+	rootN.addPattern(*sign1);
 	find_matches(rootN, loadedData, loadedSize, false);
 }
 
@@ -158,11 +158,11 @@ bool aho_corasic_test()
 	BYTE loadedData[] = "GCATCG";
 	size_t loadedSize = sizeof(loadedData);
 
-	Node::addTextPattern(&rootN, "ACC");
-	Node::addTextPattern(&rootN, "ATC");
-	Node::addTextPattern(&rootN, "CAT");
-	Node::addTextPattern(&rootN, "CATC");
-	Node::addTextPattern(&rootN, "GCG");
+	rootN.addTextPattern("ACC");
+	rootN.addTextPattern("ATC");
+	rootN.addTextPattern("CAT");
+	rootN.addTextPattern("CATC");
+	rootN.addTextPattern("GCG");
 
 	if (find_matches(rootN, loadedData, loadedSize) == 3) {
 		return true;
@@ -177,10 +177,10 @@ bool aho_corasic_test2()
 	BYTE loadedData[] = "ushers";
 	size_t loadedSize = sizeof(loadedData);
 
-	Node::addTextPattern(&rootN, "hers");
-	Node::addTextPattern(&rootN, "his");
-	Node::addTextPattern(&rootN, "he");
-	Node::addTextPattern(&rootN, "she");
+	rootN.addTextPattern("hers");
+	rootN.addTextPattern("his");
+	rootN.addTextPattern("he");
+	rootN.addTextPattern("she");
 	if (find_matches(rootN, loadedData, loadedSize) == 3) {
 		return true;
 	}
@@ -195,7 +195,7 @@ bool aho_corasic_test3()
 	BYTE loadedData[] = "h he her hers";
 	size_t loadedSize = sizeof(loadedData);
 
-	Node::addTextPattern(&rootN, "hers");
+	rootN.addTextPattern("hers");
 	if (find_matches(rootN, loadedData, loadedSize) == 1) {
 		return true;
 	}
@@ -210,8 +210,8 @@ bool aho_corasic_test4()
 	BYTE loadedData[] = "hehehehehe";
 	size_t loadedSize = sizeof(loadedData);
 
-	Node::addTextPattern(&rootN, "he");
-	Node::addTextPattern(&rootN, "hehehehe");
+	rootN.addTextPattern("he");
+	rootN.addTextPattern("hehehehe");
 	if (find_matches(rootN, loadedData, loadedSize) == 7) {
 		return true;
 	}
@@ -226,9 +226,9 @@ bool aho_corasic_test5()
 	BYTE loadedData[] = "something";
 	size_t loadedSize = sizeof(loadedData);
 
-	Node::addTextPattern(&rootN, "hers");
-	Node::addTextPattern(&rootN, "his");
-	Node::addTextPattern(&rootN, "he");
+	rootN.addTextPattern("hers");
+	rootN.addTextPattern("his");
+	rootN.addTextPattern("he");
 
 	if (find_matches(rootN, loadedData, loadedSize) == 0) {
 		return true;

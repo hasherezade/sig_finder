@@ -16,8 +16,8 @@ namespace pattern_tree {
 	class Signature
 	{
 	public:
-
 		static Signature* loadFromByteStr(const std::string& signName, const std::string& content);
+		size_t loadFromFile(std::ifstream& input, std::vector<Signature*>& signatures);
 
 		Signature(std::string _name, const BYTE* _pattern, size_t _pattern_size, const BYTE* _mask)
 			: name(_name), pattern(nullptr), pattern_size(0), mask(nullptr)
@@ -159,12 +159,12 @@ namespace pattern_tree {
 	class Node
 	{
 	public:
-		static bool addPattern(Node* rootN, const char* _name, const BYTE* pattern, size_t pattern_size, const BYTE* pattern_mask=nullptr)
+		bool addPattern(const char* _name, const BYTE* pattern, size_t pattern_size, const BYTE* pattern_mask=nullptr)
 		{
-			if (!rootN || !pattern || !pattern_size) {
+			if (!pattern || !pattern_size) {
 				return false;
 			}
-			Node* next = rootN;
+			Node* next = this;
 			for (size_t i = 0; i < pattern_size; i++) {
 				BYTE mask = (pattern_mask != nullptr) ? pattern_mask[i] : MASK_IMM;
 				next = next->addNext(pattern[i], mask);
@@ -174,14 +174,14 @@ namespace pattern_tree {
 			return true;
 		}
 
-		static bool addTextPattern(Node* rootN, const char* pattern1)
+		bool addTextPattern(const char* pattern1)
 		{
-			return Node::addPattern(rootN, pattern1, (const BYTE*)pattern1, strlen(pattern1));
+			return addPattern(pattern1, (const BYTE*)pattern1, strlen(pattern1));
 		}
 
-		static bool addPattern(Node* rootN, const Signature& sign)
+		bool addPattern(const Signature& sign)
 		{
-			return addPattern(rootN, sign.name.c_str(), sign.pattern, sign.pattern_size, sign.mask);
+			return addPattern(sign.name.c_str(), sign.pattern, sign.pattern_size, sign.mask);
 		}
 
 		//---
@@ -206,47 +206,6 @@ namespace pattern_tree {
 			if (sign) {
 				delete sign;
 			}
-		}
-
-		Node* getNode(BYTE _val, BYTE _mask)
-		{
-			BYTE maskedVal = _val & _mask;
-			if (_mask == MASK_IMM) {
-				return _findInChildren(immediates, maskedVal);
-			}
-			else if (_mask == MASK_PARTIAL1 || _mask == MASK_PARTIAL2) {
-				return _findInChildren(partials, maskedVal);
-			}
-			else if (_mask == MASK_WILDCARD) {
-				return _findInChildren(wildcards, maskedVal);
-			}
-			return nullptr;
-		}
-
-		Node* addNext(BYTE _val, BYTE _mask)
-		{
-			Node* nextN = getNode(_val, _mask);
-			if (nextN) {
-				return nextN;
-			}
-
-			BYTE maskedVal = _val & _mask;
-			nextN = new Node(_val, this->level + 1, _mask);
-			if (_mask == MASK_IMM) {
-				immediates[maskedVal] = nextN;
-			}
-			else if (_mask == MASK_PARTIAL1 || _mask == MASK_PARTIAL2) {
-				partials[maskedVal] = nextN;
-			}
-			else if (_mask == MASK_WILDCARD) {
-				wildcards[maskedVal] = nextN;
-			}
-			else {
-				delete nextN;
-				std::cout << "Invalid mask supplied for value: " << std::hex << (unsigned int)_val << " Mask:" << (unsigned int)_mask << "\n";
-				return nullptr; // invalid mask
-			}
-			return nextN;
 		}
 
 		void print()
@@ -321,7 +280,49 @@ namespace pattern_tree {
 			return sign ? true : false;
 		}
 
-	protected:
+	private:
+
+		Node* getNode(BYTE _val, BYTE _mask)
+		{
+			BYTE maskedVal = _val & _mask;
+			if (_mask == MASK_IMM) {
+				return _findInChildren(immediates, maskedVal);
+			}
+			else if (_mask == MASK_PARTIAL1 || _mask == MASK_PARTIAL2) {
+				return _findInChildren(partials, maskedVal);
+			}
+			else if (_mask == MASK_WILDCARD) {
+				return _findInChildren(wildcards, maskedVal);
+			}
+			return nullptr;
+		}
+
+		Node* addNext(BYTE _val, BYTE _mask)
+		{
+			Node* nextN = getNode(_val, _mask);
+			if (nextN) {
+				return nextN;
+		}
+
+			BYTE maskedVal = _val & _mask;
+			nextN = new Node(_val, this->level + 1, _mask);
+			if (_mask == MASK_IMM) {
+				immediates[maskedVal] = nextN;
+			}
+			else if (_mask == MASK_PARTIAL1 || _mask == MASK_PARTIAL2) {
+				partials[maskedVal] = nextN;
+			}
+			else if (_mask == MASK_WILDCARD) {
+				wildcards[maskedVal] = nextN;
+			}
+			else {
+				delete nextN;
+				std::cout << "Invalid mask supplied for value: " << std::hex << (unsigned int)_val << " Mask:" << (unsigned int)_mask << "\n";
+				return nullptr; // invalid mask
+			}
+			return nextN;
+		}
+
 		Node* _findInChildren(std::map<BYTE, Node*>& children, BYTE _val)
 		{
 			if (!children.size()) {
