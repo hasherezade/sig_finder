@@ -107,13 +107,14 @@ namespace pattern_tree {
 	{
 	public:
 		ShortList()
-			: elCount(0)
+			: elCount(0),
+			maxCount(sizeof(list) / sizeof(Element))
 		{
 		}
 
 		bool push_back(Element n)
 		{
-			if (elCount >= maxCount()) {
+			if (elCount >= maxCount) {
 				return false;
 			}
 			if (find(n)) {
@@ -126,7 +127,7 @@ namespace pattern_tree {
 
 		Element at(size_t i)
 		{
-			if (i < maxCount()) {
+			if (i < maxCount) {
 				return list[i];
 			}
 			return nullptr;
@@ -153,11 +154,8 @@ namespace pattern_tree {
 		}
 
 	protected:
-		size_t maxCount()
-		{
-			return sizeof(list)/sizeof(Element);
-		}
-		
+
+		const size_t maxCount;
 		size_t elCount;
 		Element list[100];
 	};
