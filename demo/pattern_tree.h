@@ -159,6 +159,19 @@ namespace pattern_tree {
 	class Node
 	{
 	public:
+		size_t addPatterns(const std::vector<Signature*>& signatures)
+		{
+			size_t loaded = 0;
+			for (auto itr = signatures.begin(); itr != signatures.end(); ++itr) {
+				const Signature* sign = *itr;
+				if (!sign) continue;
+				if (this->addPattern(*sign)) {
+					loaded++;
+				}
+			}
+			return loaded;
+		}
+
 		bool addPattern(const char* _name, const BYTE* pattern, size_t pattern_size, const BYTE* pattern_mask=nullptr)
 		{
 			if (!pattern || !pattern_size) {
