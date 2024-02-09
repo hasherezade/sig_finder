@@ -5,6 +5,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <cstring>
 
 #define MASK_IMM 0xFF
 #define MASK_PARTIAL1 0x0F
@@ -112,7 +113,7 @@ namespace pattern_tree {
 
 		bool push_back(Element n)
 		{
-			if (elCount >= _countof(list)) {
+			if (elCount >= maxCount()) {
 				return false;
 			}
 			if (find(n)) {
@@ -125,7 +126,7 @@ namespace pattern_tree {
 
 		Element at(size_t i)
 		{
-			if (i < _countof(list)) {
+			if (i < maxCount()) {
 				return list[i];
 			}
 			return nullptr;
@@ -152,6 +153,11 @@ namespace pattern_tree {
 		}
 
 	protected:
+		size_t maxCount()
+		{
+			return sizeof(list)/sizeof(Element);
+		}
+		
 		size_t elCount;
 		Element list[100];
 	};

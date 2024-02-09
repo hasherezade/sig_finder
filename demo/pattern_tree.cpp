@@ -112,12 +112,12 @@ std::string Signature::toByteStr()
 
 Signature* Signature::loadFromByteStr(const std::string& signName, const std::string& content)
 {
-	if (!content.length()) return false;
+	if (!content.length()) return nullptr;
 
 	const size_t buf_max = content.length() / 2;
 	BYTE* pattern = (BYTE*)::calloc(buf_max, 1);
 	BYTE* mask = (BYTE*)::calloc(buf_max, 1);
-	if (!pattern || !mask) return false;
+	if (!pattern || !mask) return nullptr;
 
 	bool isOk = true;
 	std::stringstream input(content);
