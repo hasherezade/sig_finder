@@ -4,13 +4,14 @@ template<class Element> class ShortList
 {
 public:
 	ShortList()
-		: elCount(0)
+		: elCount(0),
+		maxCount(sizeof(list) / sizeof(Element))
 	{
 	}
 
 	bool push_back(Element n)
 	{
-		if (elCount >= _countof(list)) {
+		if (elCount >= maxCount) {
 			return false;
 		}
 		if (find(n)) {
@@ -23,7 +24,7 @@ public:
 
 	Element at(size_t i)
 	{
-		if (i < _countof(list)) {
+		if (i < maxCount) {
 			return list[i];
 		}
 		return nullptr;
@@ -50,6 +51,8 @@ public:
 	}
 
 protected:
+
+	const size_t maxCount;
 	size_t elCount;
 	Element list[100];
 };
