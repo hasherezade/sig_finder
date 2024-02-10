@@ -2,7 +2,7 @@
 #include <sig_finder.h>
 
 #include <pattern_tree.h>
-using namespace pattern_tree;
+using namespace sig_finder;
 
 BYTE* load_file(const char* filename, size_t& buf_size)
 {

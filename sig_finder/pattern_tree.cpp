@@ -4,61 +4,19 @@
 
 #include <iostream>
 #include <iomanip>
+
+#include "util.h"
 //--------------------------------------
 
-#include <ctype.h>
-namespace pattern_tree {
-
-	namespace util {
-
-		std::string& ltrim(std::string& str, const std::string& chars = "\t\n\v\f\r ")
-		{
-			str.erase(0, str.find_first_not_of(chars));
-			return str;
-		}
-
-		std::string& rtrim(std::string& str, const std::string& chars = "\t\n\v\f\r ")
-		{
-			str.erase(str.find_last_not_of(chars) + 1);
-			return str;
-		}
-
-		std::string& trim(std::string& str, const std::string& chars = "\t\n\v\f\r ")
-		{
-			return ltrim(rtrim(str, chars), chars);
-		}
-	}
-};
-
-//--------------------------------------
-
-using namespace pattern_tree;
+using namespace sig_finder;
 
 #define WILD_CHAR '?'
 
-namespace pattern_tree {
-	bool inline is_hex(char c)
-	{
-		if ((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) return true;
-		return false;
-	};
-
-	char inline hex_char_to_val(char c)
-	{
-		if (c >= '0' && c <= '9') {
-			return c - '0';
-		}
-		if (c >= 'a' && c <= 'f') {
-			return c - 'a' + 10;
-		}
-		if (c >= 'A' && c <= 'F') {
-			return c - 'A' + 10;
-		}
-		return 0;
-	};
+namespace sig_finder {
 
 	bool parseSigNode(const char chunk[3], BYTE& val, BYTE& vmask)
 	{
+		using namespace util;
 		if (is_hex(chunk[0]) && is_hex(chunk[1])) {
 			val = (hex_char_to_val(chunk[0]) << 4) | (hex_char_to_val(chunk[1]));
 			vmask = 0xFF;
@@ -159,7 +117,7 @@ size_t Signature::loadFromFile(std::string fname, std::vector<Signature*>& signa
 	return num;
 }
 
-namespace pattern_tree {
+namespace sig_finder {
 	bool hasSignature(const std::vector<Signature*> &signatures, const Signature& searchedSign)
 	{
 		for (auto itr = signatures.begin(); itr != signatures.end(); itr++) {

@@ -14,7 +14,7 @@
 #define MASK_PARTIAL2 0xF0
 #define MASK_WILDCARD 0
 
-namespace pattern_tree {
+namespace sig_finder {
 
 	class Signature
 	{
@@ -372,4 +372,4 @@ namespace pattern_tree {
 		return empty;
 	}
 
-}; //namespace pattern_tree
+}; //namespace sig_finder
