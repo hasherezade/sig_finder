@@ -12,6 +12,7 @@ set (sig_srcs
 	PckrSign.cpp
 	SigTree.cpp
 	SigFinder.cpp
+	pattern_tree.cpp
 )
 
 set (sig_hdrs
@@ -20,6 +21,7 @@ set (sig_hdrs
 	include/SigTree.h
 	include/SigFinder.h
 	include/sig_finder.h
+	include/pattern_tree.h
 )
 include_directories ( include )
 add_library(${PROJECT_NAME} STATIC ${sig_srcs} ${sig_hdrs})

@@ -1,7 +1,7 @@
 #include <iostream>
 #include <sig_finder.h>
 
-#include "pattern_tree.h"
+#include <pattern_tree.h>
 using namespace pattern_tree;
 
 BYTE* load_file(const char* filename, size_t& buf_size)

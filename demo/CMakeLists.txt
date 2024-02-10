@@ -11,11 +11,9 @@ include_directories ( ${PARAMKIT_DIR}/include )
 
 set (srcs
 	main.cpp
-	pattern_tree.cpp
 )
 
 set (hdrs
-	pattern_tree.h
 )
 
 add_executable ( ${PROJECT_NAME} ${hdrs} ${srcs} )
