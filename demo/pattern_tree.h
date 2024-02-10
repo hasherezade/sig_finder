@@ -18,29 +18,37 @@ namespace pattern_tree {
 	{
 	public:
 		static Signature* loadFromByteStr(const std::string& signName, const std::string& content);
-		size_t loadFromFile(std::ifstream& input, std::vector<Signature*>& signatures);
+		static size_t loadFromFile(std::string filename, std::vector<Signature*>& signatures);
+		static size_t loadFromFileStream(std::ifstream& input, std::vector<Signature*>& signatures);
 
 		Signature(std::string _name, const BYTE* _pattern, size_t _pattern_size, const BYTE* _mask)
 			: name(_name), pattern(nullptr), pattern_size(0), mask(nullptr)
 		{
-			this->pattern = (BYTE*)::calloc(_pattern_size, 1);
-			if (!this->pattern) return;
-
-			::memcpy(this->pattern, _pattern, _pattern_size);
-			this->pattern_size = _pattern_size;
-
-			if (_mask) {
-				this->mask = (BYTE*)::calloc(_pattern_size, 1);
-				if (this->mask) {
-					::memcpy(this->mask, _mask, _pattern_size);
-				}
-			}
+			init(_name, _pattern, _pattern_size, _mask);
 		}
 
 		Signature(const Signature& _sign) // copy constructor
 			: pattern(nullptr), pattern_size(0), mask(nullptr)
 		{
 			init(_sign.name, _sign.pattern, _sign.pattern_size, _sign.mask);
+		}
+
+		bool operator==(const Signature& rhs) const
+		{
+			if (this->pattern_size != rhs.pattern_size) {
+				return false;
+			}
+			if (this->pattern && rhs.pattern) {
+				if (::memcmp(pattern, rhs.pattern, pattern_size) != 0) {
+					return false;
+				}
+			}
+			if (mask && rhs.mask) {
+				if (::memcmp(mask, rhs.mask, pattern_size) != 0) {
+					return false;
+				}
+			}
+			return true;
 		}
 
 		size_t size()
@@ -187,7 +195,11 @@ namespace pattern_tree {
 				next = next->addNext(pattern[i], mask);
 				if (!next) return false;
 			}
-			next->sign = new Signature(_name, pattern, pattern_size, pattern_mask);
+			if (!next->sign) {
+				next->sign = new Signature(_name, pattern, pattern_size, pattern_mask);
+			} else {
+				next->sign->name = _name;
+			}
 			return true;
 		}
 
@@ -217,6 +229,11 @@ namespace pattern_tree {
 
 		~Node()
 		{
+			clear();
+		}
+		
+		void clear()
+		{
 			_deleteChildren(immediates);
 			_deleteChildren(partials);
 			_deleteChildren(wildcards);
@@ -237,8 +254,7 @@ namespace pattern_tree {
 			}
 		}
 
-#define SEARCH_BACK
-		size_t getMatching(const BYTE* data, size_t data_size, std::vector<Match> &matches, bool stopOnFirst)
+		size_t getMatching(const BYTE* data, size_t data_size, std::vector<Match> &matches, bool stopOnFirst, bool moveStart = true)
 		{
 			size_t processed = 0;
 			//
@@ -264,20 +280,20 @@ namespace pattern_tree {
 						}
 					}
 					_followAllMasked(level2_ptr, curr, data[i]);
-#ifdef SEARCH_BACK
-					if (curr != this) {
-						// the current value may also be a beginning of a new pattern:
-						_followAllMasked(level2_ptr, this, data[i]);
+					if (moveStart) {
+						if (curr != this) {
+							// the current value may also be a beginning of a new pattern:
+							_followAllMasked(level2_ptr, this, data[i]);
+						}
 					}
-#endif
 				}
 				if (!level2_ptr->size()) {
-#ifdef SEARCH_BACK
-					// restart search from the beginning
-					level2_ptr->push_back(this);
-#else
-					return results;
-#endif //SEARCH_BACK
+					if (moveStart) {
+						// if run out of the matches, restart search from the root
+						level2_ptr->push_back(this);
+					} else {
+						return processed;
+					}
 				}
 				//swap:
 				auto tmp = level1_ptr;
