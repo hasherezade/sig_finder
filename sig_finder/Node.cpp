@@ -69,25 +69,25 @@ size_t Node::getMatching(const BYTE* data, size_t data_size, std::vector<Match>&
 	//
 	const size_t MAX_PER_ROUND = moveStart ? 8 : 4; // max count of nodes that can be added to level2 per round
 
-	ShortList<Node*> level1(2);
-	auto level1_ptr = &level1;
-	level1_ptr->push_back(this);
+	ShortList<Node*> level1_list(2);
+	auto level1 = &level1_list;
+	level1->push_back(this);
 
-	ShortList<Node*> level2(MAX_PER_ROUND + 1);
-	auto level2_ptr = &level2;
+	ShortList<Node*> level2_list(MAX_PER_ROUND + 1);
+	auto level2 = &level2_list;
 
 	for (size_t i = 0; i < data_size; i++, processed++)
 	{
-		const size_t level2_max = (level1_ptr->size() * MAX_PER_ROUND) + 1;
-		if (level2_max > level2_ptr->maxSize()) {
-			if (!level2_ptr->resize(level2_max)) {
+		const size_t level2_max = (level1->size() * MAX_PER_ROUND) + 1;
+		if (level2_max > level2->maxSize()) {
+			if (!level2->resize(level2_max)) {
 				std::cerr << "Failed to reallocate!\n";
 				return processed;
 			}
 		}
-		level2_ptr->clear();
-		for (size_t k = 0; k < level1_ptr->size(); k++) {
-			Node* curr = level1_ptr->at(k);
+		level2->clear();
+		for (size_t k = 0; k < level1->size(); k++) {
+			Node* curr = level1->at(k);
 			if (curr->isSign()) {
 				size_t match_start = i - curr->sign->size();
 				Match m(match_start, curr->sign);
@@ -96,27 +96,27 @@ size_t Node::getMatching(const BYTE* data, size_t data_size, std::vector<Match>&
 					return match_start;
 				}
 			}
-			_followAllMasked(level2_ptr, curr, data[i]); // adds up to 4 nodes to the level2
+			_followAllMasked(level2, curr, data[i]); // adds up to 4 nodes to the level2
 			if (moveStart) {
 				if (curr != this) {
 					// the current value may also be a beginning of a new pattern:
-					_followAllMasked(level2_ptr, this, data[i]); // adds up to 4 nodes to the level2
+					_followAllMasked(level2, this, data[i]); // adds up to 4 nodes to the level2
 				}
 			}
 		}
-		if (!level2_ptr->size()) {
+		if (!level2->size()) {
 			if (moveStart) {
 				// if run out of the matches, restart search from the root
-				level2_ptr->push_back(this);
+				level2->push_back(this);
 			}
 			else {
 				return processed;
 			}
 		}
 		//swap:
-		auto tmp = level1_ptr;
-		level1_ptr = level2_ptr;
-		level2_ptr = tmp;
+		auto tmp = level1;
+		level1 = level2;
+		level2 = tmp;
 	}
 	return processed;
 }
