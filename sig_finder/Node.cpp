@@ -67,16 +67,24 @@ size_t Node::getMatching(const BYTE* data, size_t data_size, std::vector<Match>&
 {
 	size_t processed = 0;
 	//
-	ShortList<Node*> level;
-	level.push_back(this);
-	ShortList<Node*> level2;
+	const size_t MAX_PER_ROUND = moveStart ? 8 : 4; // max count of nodes that can be added to level2 per round
 
-	auto level1_ptr = &level;
+	ShortList<Node*> level1(2);
+	auto level1_ptr = &level1;
+	level1_ptr->push_back(this);
+
+	ShortList<Node*> level2(MAX_PER_ROUND + 1);
 	auto level2_ptr = &level2;
 
-	for (size_t i = 0; i < data_size; i++)
+	for (size_t i = 0; i < data_size; i++, processed++)
 	{
-		processed = i; // processed bytes
+		const size_t level2_max = (level1_ptr->size() * MAX_PER_ROUND) + 1;
+		if (level2_max > level2_ptr->maxSize()) {
+			if (!level2_ptr->resize(level2_max)) {
+				std::cerr << "Failed to reallocate!\n";
+				return processed;
+			}
+		}
 		level2_ptr->clear();
 		for (size_t k = 0; k < level1_ptr->size(); k++) {
 			Node* curr = level1_ptr->at(k);
@@ -88,11 +96,11 @@ size_t Node::getMatching(const BYTE* data, size_t data_size, std::vector<Match>&
 					return match_start;
 				}
 			}
-			_followAllMasked(level2_ptr, curr, data[i]);
+			_followAllMasked(level2_ptr, curr, data[i]); // adds up to 4 nodes to the level2
 			if (moveStart) {
 				if (curr != this) {
 					// the current value may also be a beginning of a new pattern:
-					_followAllMasked(level2_ptr, this, data[i]);
+					_followAllMasked(level2_ptr, this, data[i]); // adds up to 4 nodes to the level2
 				}
 			}
 		}
