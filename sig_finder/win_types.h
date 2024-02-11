@@ -2,8 +2,6 @@
 
 #ifdef _MSC_VER
 	#include <stdint.h>
-	#define snprintf _snprintf
-	#define snscanf _snscanf
 #else
 	#include <inttypes.h>
 #endif
