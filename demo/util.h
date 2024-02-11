@@ -28,7 +28,6 @@ inline void show_hex_preview(BYTE* loadedData, size_t loadedSize, size_t offset,
 		if ((i - offset) >= previewSize) break;
 		std::cout << to_hex(loadedData[i]) << " ";
 	}
-	std::cout << std::endl;
 }
 
 inline BYTE* load_file(const char* filename, size_t& buf_size)

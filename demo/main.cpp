@@ -9,13 +9,13 @@ typedef struct {
 	size_t size;
 } t_pattern;
 
-void print_results(const char caller[], size_t counter, size_t timeInMs)
+void print_results(const char desc[], size_t counter, size_t timeInMs)
 {
-	std::cout << caller << ":\n\t Occ. counted: " << std::dec << counter << " Time: " << timeInMs << " ms." << std::endl;
+	std::cout << desc << ":\n\t Occ. counted: " << std::dec << counter << " Time: " << timeInMs << " ms." << std::endl;
 }
 
 
-size_t find_matches(Node &rootN, BYTE loadedData[], size_t loadedSize, bool showMatches = true)
+size_t find_matches(Node &rootN, BYTE loadedData[], size_t loadedSize, const char desc[], bool showMatches, bool showHexPreview = false)
 {
 	std::cout << "Input: " << loadedData << " : " << loadedSize << std::endl;
 	std::vector<Match> allMatches;
@@ -25,11 +25,15 @@ size_t find_matches(Node &rootN, BYTE loadedData[], size_t loadedSize, bool show
 	for (auto itr = allMatches.begin(); itr != allMatches.end(); ++itr) {
 		Match m = *itr;
 		if (showMatches) {
-			std::cout << "Match: " << std::hex << m.offset << " : " << m.sign->name << "  ["<< m.sign->size() << "]\t";
-			show_hex_preview(loadedData, loadedSize, m.offset, m.sign->size());
+			std::cout << "Match at: " << std::hex << m.offset << ", size: " << m.sign->size() << " : \"" << m.sign->name << "\"";
+			if (showHexPreview) {
+				std::cout << "\t";
+				show_hex_preview(loadedData, loadedSize, m.offset, m.sign->size());
+			}
+			std::cout << std::endl;
 		}
 	}
-	print_results(__FUNCTION__, counter, (end - start));
+	print_results(desc, counter, (end - start));
 	return counter;
 }
 
@@ -255,7 +259,7 @@ void multi_search(BYTE* loadedData, size_t loadedSize)
 		return;
 	}
 	rootN.addPattern(*sign1);
-	find_matches(rootN, loadedData, loadedSize, false);
+	find_matches(rootN, loadedData, loadedSize, __FUNCTION__, false);
 }
 
 bool aho_corasic_test()
@@ -270,7 +274,7 @@ bool aho_corasic_test()
 	rootN.addTextPattern("CATC");
 	rootN.addTextPattern("GCG");
 
-	if (find_matches(rootN, loadedData, loadedSize) == 3) {
+	if (find_matches(rootN, loadedData, loadedSize, __FUNCTION__, true) == 3) {
 		return true;
 	}
 	std::cerr << __FUNCTION__ << " : Test failed.\n";
@@ -287,7 +291,7 @@ bool aho_corasic_test2()
 	rootN.addTextPattern("his");
 	rootN.addTextPattern("he");
 	rootN.addTextPattern("she");
-	if (find_matches(rootN, loadedData, loadedSize) == 3) {
+	if (find_matches(rootN, loadedData, loadedSize, __FUNCTION__, true) == 3) {
 		return true;
 	}
 	std::cerr << __FUNCTION__ << " : Test failed.\n";
@@ -302,7 +306,7 @@ bool aho_corasic_test3()
 	size_t loadedSize = sizeof(loadedData);
 
 	rootN.addTextPattern("hers");
-	if (find_matches(rootN, loadedData, loadedSize) == 1) {
+	if (find_matches(rootN, loadedData, loadedSize, __FUNCTION__, true) == 1) {
 		return true;
 	}
 	std::cerr << __FUNCTION__ << " : Test failed.\n";
@@ -318,7 +322,7 @@ bool aho_corasic_test4()
 
 	rootN.addTextPattern("he");
 	rootN.addTextPattern("hehehehe");
-	if (find_matches(rootN, loadedData, loadedSize) == 7) {
+	if (find_matches(rootN, loadedData, loadedSize, __FUNCTION__, true) == 7) {
 		return true;
 	}
 	std::cerr << __FUNCTION__ << " : Test failed.\n";
@@ -336,7 +340,7 @@ bool aho_corasic_test5()
 	rootN.addTextPattern("his");
 	rootN.addTextPattern("he");
 	
-	if (find_matches(rootN, loadedData, loadedSize) == 0) {
+	if (find_matches(rootN, loadedData, loadedSize, __FUNCTION__, true) == 0) {
 		return true;
 	}
 	std::cerr << __FUNCTION__ << " : Test failed.\n";
@@ -345,12 +349,12 @@ bool aho_corasic_test5()
 
 int main(int argc, char *argv[])
 {
-
 	if (!aho_corasic_test()) return (-1);
 	if (!aho_corasic_test2()) return (-1);
 	if (!aho_corasic_test3()) return (-1);
 	if (!aho_corasic_test4()) return (-1);
 	if (!aho_corasic_test5()) return (-1);
+	std::cout << "[+] All passed.\n";
 
 	if (argc < 3) {
 		std::cout << " Args: <input_file> <patterns_file>\n";
@@ -378,7 +382,7 @@ int main(int argc, char *argv[])
 	}
 	Node rootN;
 	rootN.addPatterns(signatures);
-	find_matches(rootN, loadedData, loadedSize, false);
+	find_matches(rootN, loadedData, loadedSize, "from_sig_file", false);
 
 	std::cout << "Finished!\n";
 	return 0;
