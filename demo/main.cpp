@@ -217,7 +217,7 @@ size_t tree_count(BYTE* loadedData, size_t loadedSize)
 	return counter;
 }
 
-void naive_search(BYTE* loadedData, size_t loadedSize)
+size_t naive_search(BYTE* loadedData, size_t loadedSize)
 {
 	const BYTE pattern[] = { 0x40, 0x53, 0x48, 0x83, 0xec };
 	size_t counter = 0;
@@ -231,9 +231,10 @@ void naive_search(BYTE* loadedData, size_t loadedSize)
 
 	DWORD end = GetTickCount();
 	print_results(__FUNCTION__, counter, (end - start));
+	return counter;
 }
 
-void tree_search(BYTE* loadedData, size_t loadedSize)
+size_t tree_search(BYTE* loadedData, size_t loadedSize)
 {
 	Node rootN;
 	const BYTE pattern[] = { 0x40, 0x53, 0x48, 0x83, 0xec };
@@ -243,6 +244,7 @@ void tree_search(BYTE* loadedData, size_t loadedSize)
 	size_t counter = find_all_matches(rootN, loadedData, loadedSize, allMatches);
 	DWORD end = GetTickCount();
 	print_results(__FUNCTION__, counter, (end - start));
+	return counter;
 }
 
 
@@ -380,11 +382,13 @@ int main(int argc, char *argv[])
 		std::cout << "Failed to load!\n";
 		return 1;
 	}
-	naive_search(loadedData, loadedSize);
-	tree_search(loadedData, loadedSize);
+	size_t nRes = naive_search(loadedData, loadedSize);
+	size_t tRes = tree_search(loadedData, loadedSize);
+	if (nRes != tRes) return (-2);
 	std::cout << "---\n";
-	naive_count(loadedData, loadedSize);
-	tree_count(loadedData, loadedSize);
+	nRes = naive_count(loadedData, loadedSize);
+	tRes = tree_count(loadedData, loadedSize);
+	if (nRes != tRes) return (-2);
 	std::cout << "---\n";
 	multi_search(loadedData, loadedSize);
 
