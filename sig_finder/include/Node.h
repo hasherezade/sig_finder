@@ -102,9 +102,7 @@ namespace sig_finder {
 				return nullptr;
 			}
 			Node* next = nullptr;
-			if (!children.get(_val, next)) {
-				std::cerr << __FUNCTION__ << " Could not get the node at: " << std::hex << _val << std::endl;
-			}
+			children.get(_val, next);
 			return next;
 		}
 
@@ -134,9 +132,6 @@ namespace sig_finder {
 				if (children.get(i, next)) {
 					delete next;
 					children.erase(i);
-				}
-				else {
-					std::cerr << __FUNCTION__ << " Could not get the node at: " << std::hex << i << std::endl;
 				}
 			}
 		}
