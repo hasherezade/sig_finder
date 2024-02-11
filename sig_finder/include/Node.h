@@ -55,7 +55,11 @@ namespace sig_finder {
 		
 		bool isEnd()
 		{
-			return (!immediates.size() && !partialsL.size() && partialsR.size() && !wildcard) ? true : false;
+			return (!immediates.size() 
+				&& !partialsL.size() 
+				&& !partialsR.size() 
+				&& !wildcard) 
+				? true : false;
 		}
 
 		bool isSign()
