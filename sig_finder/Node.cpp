@@ -12,7 +12,7 @@ Node* Node::getNode(BYTE _val, BYTE _mask)
 		return _findInChildren(partials, maskedVal);
 	}
 	else if (_mask == MASK_WILDCARD) {
-		return _findInChildren(wildcards, maskedVal);
+		return wildcard;
 	}
 	return nullptr;
 }
@@ -27,13 +27,13 @@ Node* Node::addNext(BYTE _val, BYTE _mask)
 	BYTE maskedVal = _val & _mask;
 	nextN = new Node(_val, this->level + 1, _mask);
 	if (_mask == MASK_IMM) {
-		immediates[maskedVal] = nextN;
+		immediates.put(maskedVal, nextN);
 	}
 	else if (_mask == MASK_PARTIAL1 || _mask == MASK_PARTIAL2) {
-		partials[maskedVal] = nextN;
+		partials.put(maskedVal, nextN);
 	}
 	else if (_mask == MASK_WILDCARD) {
-		wildcards[maskedVal] = nextN;
+		wildcard = nextN;
 	}
 	else {
 		delete nextN;

@@ -18,17 +18,108 @@
 
 namespace sig_finder {
 
+	template <class Element>
+	class ByteMap
+	{
+	public:
+		ByteMap(size_t maxElements, size_t _startIndx = 0)
+			: maxCount(maxElements), startIndx(_startIndx), filledCount(0)
+		{
+			this->list = (Element*) ::calloc(maxCount, sizeof(Element));
+			if (!this->list) {
+				std::cerr << "Allocating ByteMap failed!\n";
+			}
+		}
+
+		~ByteMap()
+		{
+			if (this->list) {
+				::free(this->list);
+			}
+		}
+
+		size_t size()
+		{
+			return filledCount;
+		}
+
+		size_t maxSize()
+		{
+			return maxCount;
+		}
+
+		size_t start()
+		{
+			return startIndx;
+		}
+
+		bool put(size_t indx, const Element &el)
+		{
+			if (!_isIndxValid(indx)) {
+				std::cerr << __FUNCTION__ << ": Invalid index:" << std::hex << indx << std::endl;
+				return false;
+			}
+			const size_t pos = indx - startIndx;
+			list[pos] = el;
+			this->filledCount++;
+			return true;
+		}
+
+		bool get(size_t indx, Element &el)
+		{
+			if (!_isIndxValid(indx)) {
+				std::cerr << __FUNCTION__ << ": Invalid index:" << std::hex << indx << std::endl;
+				return false;
+			}
+			const size_t pos = indx - startIndx;
+			el = list[pos];
+			return true;
+		}
+
+		bool erase(size_t indx)
+		{
+			if (!_isIndxValid(indx)) {
+				std::cerr << __FUNCTION__ << ": Invalid index:" << std::hex << indx << std::endl;
+				return false;
+			}
+			const size_t pos = indx - startIndx;
+			list[pos] = NULL;
+			this->filledCount--;
+			return true;
+		}
+
+	protected:
+
+		bool _isIndxValid(size_t indx)
+		{
+			const size_t endIndx = startIndx + maxCount;
+			if (indx >= startIndx && indx < endIndx) {
+				return true;
+			}
+			return false;
+		}
+
+		size_t filledCount;
+		size_t maxCount;
+		size_t startIndx;
+		Element* list;
+	};
+	
+	//---
+
 	class Node
 	{
 	public:
 		Node()
 			: level(0), val(0), mask(MASK_IMM),
+			wildcard(nullptr), immediates(0x100), partials(0x100),
 			sign(nullptr)
 		{
 		}
 
 		Node(BYTE _val, size_t _level, BYTE _mask)
 			: val(_val), level(_level), mask(_mask),
+			wildcard(nullptr), immediates(0x100), partials(0x100),
 			sign(nullptr)
 		{
 		}
@@ -42,15 +133,15 @@ namespace sig_finder {
 		{
 			_deleteChildren(immediates);
 			_deleteChildren(partials);
-			_deleteChildren(wildcards);
-			if (sign) {
-				delete sign;
-			}
+			if (wildcard) delete wildcard;
+			wildcard = nullptr;
+			if (sign) delete sign;
+			sign = nullptr;
 		}
 		
 		bool isEnd()
 		{
-			return (!immediates.size() && !partials.size() && !wildcards.size()) ? true : false;
+			return (!immediates.size() && !partials.size() && !wildcard) ? true : false;
 		}
 
 		bool isSign()
@@ -91,16 +182,16 @@ namespace sig_finder {
 
 		Node* addNext(BYTE _val, BYTE _mask);
 
-		Node* _findInChildren(std::map<BYTE, Node*>& children, BYTE _val)
+		Node* _findInChildren(ByteMap<Node*>& children, BYTE _val)
 		{
 			if (!children.size()) {
 				return nullptr;
 			}
-			auto found = children.find(_val);
-			if (found != children.end()) {
-				return found->second;
+			Node* next = nullptr;
+			if (!children.get(_val, next)) {
+				std::cerr << __FUNCTION__ << " Could not get the node at: " << std::hex << _val << std::endl;
 			}
-			return nullptr;
+			return next;
 		}
 
 		bool _followMasked(ShortList<Node*>* level2_ptr, Node* curr, BYTE val, BYTE mask)
@@ -120,22 +211,29 @@ namespace sig_finder {
 			_followMasked(level2_ptr, node, val, MASK_WILDCARD);
 		}
 
-		void _deleteChildren(std::map<BYTE, Node*>& children)
+		void _deleteChildren(ByteMap<Node*>& children)
 		{
-			for (auto itr = children.begin(); itr != children.end(); ++itr) {
-				Node* next = itr->second;
-				delete next;
+			size_t startIndx = children.start();
+			size_t endIndx = startIndx + children.maxSize();
+			for (size_t i = startIndx; i < endIndx; i++) {
+				Node* next = nullptr;
+				if (children.get(i, next)) {
+					delete next;
+					children.erase(i);
+				}
+				else {
+					std::cerr << __FUNCTION__ << " Could not get the node at: " << std::hex << i << std::endl;
+				}
 			}
-			children.clear();
 		}
 
 		Signature* sign;
 		BYTE val;
 		BYTE mask;
 		size_t level;
-		std::map<BYTE, Node*> immediates;
-		std::map<BYTE, Node*> partials;
-		std::map<BYTE, Node*> wildcards;
+		ByteMap<Node*> immediates;
+		ByteMap<Node*> partials;
+		Node* wildcard;
 	};
 
 }; // namespace sig_finder
