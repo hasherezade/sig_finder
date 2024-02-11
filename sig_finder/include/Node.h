@@ -23,12 +23,14 @@ namespace sig_finder {
 	public:
 		Node()
 			: level(0), val(0), mask(MASK_IMM),
+			wildcard(nullptr),
 			sign(nullptr)
 		{
 		}
 
 		Node(BYTE _val, size_t _level, BYTE _mask)
 			: val(_val), level(_level), mask(_mask),
+			wildcard(nullptr),
 			sign(nullptr)
 		{
 		}
@@ -42,15 +44,15 @@ namespace sig_finder {
 		{
 			_deleteChildren(immediates);
 			_deleteChildren(partials);
-			_deleteChildren(wildcards);
-			if (sign) {
-				delete sign;
-			}
+			if (wildcard) delete wildcard;
+			wildcard = nullptr;
+			if (sign) delete sign;
+			sign = nullptr;
 		}
 		
 		bool isEnd()
 		{
-			return (!immediates.size() && !partials.size() && !wildcards.size()) ? true : false;
+			return (!immediates.size() && !partials.size() && !wildcard) ? true : false;
 		}
 
 		bool isSign()
@@ -135,7 +137,7 @@ namespace sig_finder {
 		size_t level;
 		std::map<BYTE, Node*> immediates;
 		std::map<BYTE, Node*> partials;
-		std::map<BYTE, Node*> wildcards;
+		Node* wildcard;
 	};
 
 }; // namespace sig_finder
