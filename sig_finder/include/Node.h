@@ -24,7 +24,7 @@ namespace sig_finder {
 		Node()
 			: level(0), val(0), mask(MASK_IMM),
 			wildcard(nullptr), immediates(0x100),
-			partialsL(0x100), partialsR(0x10),
+			partialsL(0x10), partialsR(0x10),
 			sign(nullptr)
 		{
 		}
@@ -32,7 +32,7 @@ namespace sig_finder {
 		Node(BYTE _val, size_t _level, BYTE _mask)
 			: val(_val), level(_level), mask(_mask),
 			wildcard(nullptr), immediates(0x100), 
-			partialsL(0x100), partialsR(0x10),
+			partialsL(0x10), partialsR(0x10),
 			sign(nullptr)
 		{
 		}

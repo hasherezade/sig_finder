@@ -2,16 +2,19 @@
 
 using namespace sig_finder;
 
+#define APPLY_MASK_R(_val) (_val & MASK_PARTIAL_R)
+#define APPLY_MASK_L(_val) (_val >> 4)
+
 Node* Node::getNode(BYTE _val, BYTE _mask)
 {
 	if (_mask == MASK_IMM) {
 		return _findInChildren(immediates, _val);
 	}
 	else if (_mask == MASK_PARTIAL_R) {
-		return _findInChildren(partialsR, (_val & _mask));
+		return _findInChildren(partialsR, APPLY_MASK_R(_val));
 	}
 	else if (_mask == MASK_PARTIAL_L) {
-		return _findInChildren(partialsL, (_val & _mask));
+		return _findInChildren(partialsL, APPLY_MASK_L(_val));
 	}
 	else if (_mask == MASK_WILDCARD) {
 		return wildcard;
@@ -31,10 +34,10 @@ Node* Node::addNext(BYTE _val, BYTE _mask)
 		immediates.put(_val, nextN);
 	}
 	else if (_mask == MASK_PARTIAL_R) {
-		partialsR.put((_val & _mask), nextN);
+		partialsR.put(APPLY_MASK_R(_val), nextN);
 	}
 	else if (_mask == MASK_PARTIAL_L) {
-		partialsL.put((_val & _mask), nextN);
+		partialsL.put(APPLY_MASK_L(_val), nextN);
 	}
 	else if (_mask == MASK_WILDCARD) {
 		wildcard = nextN;
