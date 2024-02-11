@@ -2,8 +2,6 @@ cmake_minimum_required ( VERSION 3.0 )
 
 project (demo)
 
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
-
 message (STATUS "sig_finder_dir='${PARAMKIT_DIR}'")
 message (STATUS "sig_finder_lib='${PARAMKIT_LIB}'")
 
