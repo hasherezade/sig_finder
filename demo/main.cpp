@@ -11,13 +11,24 @@ typedef struct {
 
 void print_results(const char desc[], size_t counter, size_t timeInMs)
 {
-	std::cout << desc << ":\n\t Occ. counted: " << std::dec << counter << " Time: " << timeInMs << " ms." << std::endl;
+	float seconds = ((float)timeInMs / 1000);
+	float minutes = ((float)timeInMs / 60000);
+	std::cout << desc << ":\n\t Occ. counted: " << std::dec << counter << " Time: "
+		<< timeInMs << " ms.";
+	if (seconds > 0.5) {
+		std::cout << " = " << seconds << " sec.";
+	}
+	if (minutes > 0.5) {
+		std::cout << " = " << minutes << " min.";
+	}
+	std::cout << std::endl;
 }
 
 
 size_t find_matches(Node &rootN, BYTE loadedData[], size_t loadedSize, const char desc[], bool showMatches, bool showHexPreview = false)
 {
-	std::cout << "Input: " << loadedData << " : " << loadedSize << std::endl;
+	std::string inputStr((char*)loadedData);
+	std::cout << "Input: " << inputStr << " : " << loadedSize << std::endl;
 	std::vector<Match> allMatches;
 	DWORD start = GetTickCount();
 	size_t counter = find_all_matches(rootN, loadedData, loadedSize, allMatches);
@@ -252,6 +263,7 @@ void multi_search(BYTE* loadedData, size_t loadedSize)
 	std::cout << sign.name << " : " << sign.toByteStr() << "\n";
 
 	rootN.addTextPattern("module");
+
 	Signature* sign1 = Signature::loadFromByteStr("prolog1", "40 ?? 4? 8? e?");
 	std::cout << sign1->name << " : " << sign1->toByteStr() << "\n";
 	if (!sign1) {
@@ -259,6 +271,7 @@ void multi_search(BYTE* loadedData, size_t loadedSize)
 		return;
 	}
 	rootN.addPattern(*sign1);
+
 	find_matches(rootN, loadedData, loadedSize, __FUNCTION__, false);
 }
 
