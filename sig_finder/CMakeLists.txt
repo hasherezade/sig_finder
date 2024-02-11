@@ -8,13 +8,17 @@ set(INSTALL_LIB_DIR lib CACHE PATH "Installation directory for libraries")
 set(INSTALL_BIN_DIR bin CACHE PATH "Installation directory for executables")
 
 set (sig_srcs
-	pattern_tree.cpp
+	Signature.cpp
+	Node.cpp
 )
 
 set (sig_hdrs
 	include/ShortList.h
+	include/Signature.h
+	include/Match.h
+	include/Node.h
+	include/find_helpers.h
 	include/sig_finder.h
-	include/pattern_tree.h
 )
 include_directories ( include )
 add_library(${PROJECT_NAME} STATIC ${sig_srcs} ${sig_hdrs})

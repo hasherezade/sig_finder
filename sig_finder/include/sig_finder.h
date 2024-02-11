@@ -1,4 +1,6 @@
 #pragma once
 
-#include "pattern_tree.h"
-
+#include "Signature.h"
+#include "Match.h"
+#include "Node.h"
+#include "find_helpers.h"

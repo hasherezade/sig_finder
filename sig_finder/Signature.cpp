@@ -1,4 +1,4 @@
-#include "pattern_tree.h"
+#include "Signature.h"
 #include <sstream>
 #include <fstream>
 
@@ -6,6 +6,9 @@
 #include <iomanip>
 
 #include "util.h"
+#include "ShortList.h"
+#include "Node.h"
+
 //--------------------------------------
 
 using namespace sig_finder;
