@@ -54,12 +54,12 @@ std::string Signature::toByteStr()
 		if (mask[i] == MASK_IMM) {
 			ss << std::setw(2) << std::setfill('0') << std::hex << (unsigned int)(pattern[i]);
 		}
-		else if (mask[i] == MASK_PARTIAL1) {
+		else if (mask[i] == MASK_PARTIAL_L) {
 			ss << WILD_CHAR;
-			ss << std::setw(1) << std::setfill('0') << std::hex << (unsigned int)(pattern[i] & MASK_PARTIAL1);
+			ss << std::setw(1) << std::setfill('0') << std::hex << (unsigned int)(pattern[i] & MASK_PARTIAL_R);
 		}
-		else if (mask[i] == MASK_PARTIAL2) {
-			ss << std::setw(1) << std::setfill('0') << std::hex << (unsigned int)((pattern[i] & MASK_PARTIAL2) >> 4);
+		else if (mask[i] == MASK_PARTIAL_L) {
+			ss << std::setw(1) << std::setfill('0') << std::hex << (unsigned int)((pattern[i] & MASK_PARTIAL_L) >> 4);
 			ss << WILD_CHAR;
 		}
 		else if (mask[i] == MASK_WILDCARD) {

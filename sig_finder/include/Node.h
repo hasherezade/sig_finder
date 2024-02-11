@@ -12,8 +12,8 @@
 #include "ShortList.h"
 
 #define MASK_IMM 0xFF
-#define MASK_PARTIAL1 0x0F
-#define MASK_PARTIAL2 0xF0
+#define MASK_PARTIAL_R 0x0F
+#define MASK_PARTIAL_L 0xF0
 #define MASK_WILDCARD 0
 
 namespace sig_finder {
@@ -23,14 +23,16 @@ namespace sig_finder {
 	public:
 		Node()
 			: level(0), val(0), mask(MASK_IMM),
-			wildcard(nullptr), immediates(0x100), partials(0x100),
+			wildcard(nullptr), immediates(0x100),
+			partialsL(0x100), partialsR(0x10),
 			sign(nullptr)
 		{
 		}
 
 		Node(BYTE _val, size_t _level, BYTE _mask)
 			: val(_val), level(_level), mask(_mask),
-			wildcard(nullptr), immediates(0x100), partials(0x100),
+			wildcard(nullptr), immediates(0x100), 
+			partialsL(0x100), partialsR(0x10),
 			sign(nullptr)
 		{
 		}
@@ -43,7 +45,8 @@ namespace sig_finder {
 		void clear()
 		{
 			_deleteChildren(immediates);
-			_deleteChildren(partials);
+			_deleteChildren(partialsL);
+			_deleteChildren(partialsR);
 			if (wildcard) delete wildcard;
 			wildcard = nullptr;
 			if (sign) delete sign;
@@ -52,7 +55,7 @@ namespace sig_finder {
 		
 		bool isEnd()
 		{
-			return (!immediates.size() && !partials.size() && !wildcard) ? true : false;
+			return (!immediates.size() && !partialsL.size() && partialsR.size() && !wildcard) ? true : false;
 		}
 
 		bool isSign()
@@ -117,8 +120,8 @@ namespace sig_finder {
 		void _followAllMasked(ShortList<Node*>* level2_ptr, Node* node, BYTE val)
 		{
 			_followMasked(level2_ptr, node, val, MASK_IMM);
-			_followMasked(level2_ptr, node, val, MASK_PARTIAL1);
-			_followMasked(level2_ptr, node, val, MASK_PARTIAL2);
+			_followMasked(level2_ptr, node, val, MASK_PARTIAL_L);
+			_followMasked(level2_ptr, node, val, MASK_PARTIAL_R);
 			_followMasked(level2_ptr, node, val, MASK_WILDCARD);
 		}
 
@@ -143,7 +146,8 @@ namespace sig_finder {
 		BYTE mask;
 		size_t level;
 		ShortMap<Node*> immediates;
-		ShortMap<Node*> partials;
+		ShortMap<Node*> partialsL;
+		ShortMap<Node*> partialsR;
 		Node* wildcard;
 	};
 

@@ -4,12 +4,14 @@ using namespace sig_finder;
 
 Node* Node::getNode(BYTE _val, BYTE _mask)
 {
-	BYTE maskedVal = _val & _mask;
 	if (_mask == MASK_IMM) {
-		return _findInChildren(immediates, maskedVal);
+		return _findInChildren(immediates, _val);
 	}
-	else if (_mask == MASK_PARTIAL1 || _mask == MASK_PARTIAL2) {
-		return _findInChildren(partials, maskedVal);
+	else if (_mask == MASK_PARTIAL_R) {
+		return _findInChildren(partialsR, (_val & _mask));
+	}
+	else if (_mask == MASK_PARTIAL_L) {
+		return _findInChildren(partialsL, (_val & _mask));
 	}
 	else if (_mask == MASK_WILDCARD) {
 		return wildcard;
@@ -24,13 +26,15 @@ Node* Node::addNext(BYTE _val, BYTE _mask)
 		return nextN;
 	}
 
-	BYTE maskedVal = _val & _mask;
 	nextN = new Node(_val, this->level + 1, _mask);
 	if (_mask == MASK_IMM) {
-		immediates.put(maskedVal, nextN);
+		immediates.put(_val, nextN);
 	}
-	else if (_mask == MASK_PARTIAL1 || _mask == MASK_PARTIAL2) {
-		partials.put(maskedVal, nextN);
+	else if (_mask == MASK_PARTIAL_R) {
+		partialsR.put((_val & _mask), nextN);
+	}
+	else if (_mask == MASK_PARTIAL_L) {
+		partialsL.put((_val & _mask), nextN);
 	}
 	else if (_mask == MASK_WILDCARD) {
 		wildcard = nextN;
