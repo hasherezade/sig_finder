@@ -27,10 +27,10 @@ Node* Node::addNext(BYTE _val, BYTE _mask)
 	BYTE maskedVal = _val & _mask;
 	nextN = new Node(_val, this->level + 1, _mask);
 	if (_mask == MASK_IMM) {
-		immediates[maskedVal] = nextN;
+		immediates.put(maskedVal, nextN);
 	}
 	else if (_mask == MASK_PARTIAL1 || _mask == MASK_PARTIAL2) {
-		partials[maskedVal] = nextN;
+		immediates.put(maskedVal, nextN);
 	}
 	else if (_mask == MASK_WILDCARD) {
 		wildcard = nextN;
