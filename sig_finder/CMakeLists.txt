@@ -8,18 +8,11 @@ set(INSTALL_LIB_DIR lib CACHE PATH "Installation directory for libraries")
 set(INSTALL_BIN_DIR bin CACHE PATH "Installation directory for executables")
 
 set (sig_srcs
-	SigNode.cpp
-	PckrSign.cpp
-	SigTree.cpp
-	SigFinder.cpp
 	pattern_tree.cpp
 )
 
 set (sig_hdrs
-	include/SigNode.h
-	include/PckrSign.h
-	include/SigTree.h
-	include/SigFinder.h
+	include/ShortList.h
 	include/sig_finder.h
 	include/pattern_tree.h
 )

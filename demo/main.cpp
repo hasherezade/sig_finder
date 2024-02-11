@@ -24,40 +24,6 @@ BYTE* load_file(const char* filename, size_t& buf_size)
 	return buf;
 }
 
-
-void init_byte_signs(sig_ma::SigFinder &signFinder)
-{
-	DWORD start = GetTickCount();
-	/*
-	const BYTE pattern3[] =      { 0x40, 0x55, 0x48, 0x83, 0xec };
-	const BYTE pattern3_mask[] = { 0xFF, 0xF0, 0xFF, 0xFF, 0xFF };
-	*/
-	// 32 bit
-	//signFinder.loadSignature("prolog32_1", "55 8b ec");
-
-	//signFinder.loadSignature("prolog32_2", "55 89 e5");
-	//signFinder.loadSignature("prolog32_3", "60 89 ec");
-
-	// 64 bit
-	signFinder.loadSignature("prolog64_1", "40 ?? 4? 8? e?");
-	//signFinder.loadSignature("prolog64_2", "55 48 8B EC");
-	//signFinder.loadSignature("prolog64_3", "40 55 48 83 EC");
-
-	//signFinder.loadSignature("prolog64_4", "53 48 81 EC");
-	//signFinder.loadSignature("prolog64_5", "48 83 E4 f0");
-	//signFinder.loadSignature("prolog64_6", "57 48 89 E7");
-
-	//signFinder.loadSignature("prolog64_7", "48 8B C4 48 89 58 08 4C 89 48 20 4C 89 40 18 48 89 50 10 55 56 57 41 54 41 55 41 56 41 57");
-
-	DWORD end = GetTickCount();
-	std::cout << "Init signs finished in: " << (end - start) << " ms." << "\n";
-}
-
-void init_string_signs(sig_ma::SigFinder& signFinder)
-{
-	signFinder.loadSignature("str1", "module", false);
-}
-
 inline bool is_matching(const BYTE* loadedData, const size_t loadedSize, const BYTE* pattern, const size_t pattern_size)
 {
 	if (loadedSize < pattern_size) return false;
@@ -116,7 +82,7 @@ size_t find_matches(Node &rootN, BYTE loadedData[], size_t loadedSize, bool show
 	for (auto itr = allMatches.begin(); itr != allMatches.end(); ++itr) {
 		Match m = *itr;
 		if (showMatches) {
-			std::cout << "Match: " << std::hex << m.offset << " : " << m.sign->name << " : "<< m.sign->size() << "\t";
+			std::cout << "Match: " << std::hex << m.offset << " : " << m.sign->name << "  ["<< m.sign->size() << "]\t";
 			show_hex_preview(loadedData, loadedSize, m.offset, m.sign->size());
 		}
 	}
@@ -246,8 +212,8 @@ int main(int argc, char *argv[])
 	aho_corasic_test4();
 	aho_corasic_test5();
 
-	if (argc < 2) {
-		std::cout << " Args: <filename>\n";
+	if (argc < 3) {
+		std::cout << " Args: <input_file> <patterns_file>\n";
 		return 0;
 	}
 
@@ -255,33 +221,18 @@ int main(int argc, char *argv[])
 	BYTE *loadedData = load_file(argv[1], loadedSize);
 	if (!loadedData) {
 		std::cout << "Failed to load!\n";
-		return 0;
+		return 1;
 	}
 
-	sig_ma::SigFinder signFinder;
-
-	init_byte_signs(signFinder);
-	//init_string_signs(signFinder);
-
-	//for (size_t i = 0; i < 20; i++) {
-		//walk_array1(loadedData, loadedSize);
-		walk_array2(loadedData, loadedSize);
-	//}
-
-	DWORD start = GetTickCount();
-	sig_ma::matched_set mS = signFinder.getMatching(loadedData, loadedSize, 0, sig_ma::FRONT_TO_BACK, false);
-	DWORD end = GetTickCount();
-
-	std::cout << "Old matcher" << std::dec << " Occ. counted: " << mS.size() << " Time: " << (end - start) << " ms." << std::endl;
-	//std::cout << "All matched: " << mS.size() << " Time: " << (end - start) << " ms." << std::endl;
-
-#ifdef _PRINT_ALL
-	for (auto itr = mS.matchedSigns.begin(); itr != mS.matchedSigns.end(); ++itr) {
-		std::cout << "Offset: " << std::hex << itr->match_offset << "\n";
-		std::cout << loadedData + itr->match_offset << "\n";
-		std::cout << "----\n";
+	std::vector<Signature*> signatures;
+	if (!sig_finder::Signature::loadFromFile(argv[2], signatures)) {
+		std::cerr << "Could not load signatures from file!\n";
+		return 2;
 	}
-#endif
+	Node rootN;
+	rootN.addPatterns(signatures);
+	find_matches(rootN, loadedData, loadedSize, true);
+
 	std::cout << "Finished!\n";
 	return 0;
 }
