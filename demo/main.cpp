@@ -1,13 +1,10 @@
 #include <iostream>
 #include <sig_finder.h>
 #include "util.h"
+#include "code_patterns.h"
 
 using namespace sig_finder;
 
-typedef struct {
-	BYTE *ptr;
-	size_t size;
-} t_pattern;
 
 void print_results(const char desc[], size_t counter, size_t timeInMs)
 {
@@ -61,78 +58,34 @@ size_t count_patterns(BYTE* buffer, size_t buf_size, BYTE* pattern_buf, size_t p
 
 size_t naive_count(BYTE* loadedData, size_t loadedSize)
 {
-	BYTE prolog32_pattern[] = {
-		0x55, // PUSH EBP
-		0x8b, 0xEC // MOV EBP, ESP
-	};
+	t_pattern patterns[_countof(patterns32) + _countof(patterns64) + 1] = { 0 };
 
-	BYTE prolog32_2_pattern[] = {
-		0x55, // PUSH EBP
-		0x89, 0xE5 // MOV EBP, ESP
-	};
+	// init patterns list:
+	size_t i = 0;
+	for (size_t k = 0; k <_countof(patterns32); k++, i++)
+	{
+		const t_pattern& p = patterns32[k];
+		patterns[i].ptr = p.ptr;
+		patterns[i].size = p.size;
+	}
+	for (size_t k = 0; k < _countof(patterns64); k++, i++)
+	{
+		const t_pattern& p = patterns64[k];
+		patterns[i].ptr = p.ptr;
+		patterns[i].size = p.size;
+	}
 
-	BYTE prolog32_3_pattern[] = {
-		0x60, // PUSHAD
-		0x89, 0xE5 // MOV EBP, ESP
-	};
+	const char text_pattern[] = "module";
+	patterns[i].ptr = (BYTE*)text_pattern;
+	patterns[i].size = strlen(text_pattern);
 
-	BYTE prolog64_pattern[] = {
-		0x40, 0x53,       // PUSH RBX
-		0x48, 0x83, 0xEC // SUB RSP, <BYTE>
-	};
-	BYTE prolog64_2_pattern[] = {
-		0x55,            // PUSH RBP
-		0x48, 0x8B, 0xEC // MOV RBP, RSP
-	};
-	BYTE prolog64_3_pattern[] = {
-		0x40, 0x55,      // PUSH RBP
-		0x48, 0x83, 0xEC // SUB RSP, <BYTE>
-	};
-	BYTE prolog64_4_pattern[] = {
-		0x53,            // PUSH RBX
-		0x48, 0x81, 0xEC // SUB RSP, <DWORD>
-	};
-	BYTE prolog64_5_pattern[] = {
-		0x48, 0x83, 0xE4, 0xF0 // AND rsp, FFFFFFFFFFFFFFF0; Align RSP to 16 bytes
-	};
-	BYTE prolog64_6_pattern[] = {
-		0x57,            // PUSH RDI
-		0x48, 0x89, 0xE7 // MOV RDI, RSP
-	};
-	BYTE prolog64_7_pattern[] = {
-		 0x48, 0x8B, 0xC4, // MOV RAX, RSP
-		 0x48, 0x89, 0x58, 0x08, // MOV QWORD PTR [RAX + 8], RBX
-		 0x4C, 0x89, 0x48, 0x20, // MOV QWORD PTR [RAX + 0X20], R9
-		 0x4C, 0x89, 0x40, 0x18, // MOV QWORD PTR [RAX + 0X18], R8
-		 0x48, 0x89, 0x50, 0x10, // MOV QWORD PTR [RAX + 0X10], RDX
-		 0x55, // PUSH RBP
-		 0x56, // PUSH RSI
-		 0x57, // PUSH RDI 
-		 0x41, 0x54, // PUSH R12
-		 0x41, 0x55, // PUSH R13
-		 0x41, 0x56, // PUSH R14
-		 0x41, 0x57 // PUSH R15
-	};
-
-	char text_pattern[] = "module";
-
-	t_pattern patterns[] = {
-		{ prolog32_pattern,   sizeof(prolog32_pattern) },
-		{ prolog32_2_pattern, sizeof(prolog32_2_pattern) },
-		{ prolog32_3_pattern, sizeof(prolog32_3_pattern) },
-		{ prolog64_pattern,   sizeof(prolog64_pattern)   },
-		{ prolog64_2_pattern, sizeof(prolog64_2_pattern) },
-		{ prolog64_3_pattern, sizeof(prolog64_3_pattern) },
-		{ prolog64_4_pattern, sizeof(prolog64_4_pattern) },
-		{ prolog64_5_pattern, sizeof(prolog64_5_pattern) },
-		{ prolog64_6_pattern, sizeof(prolog64_6_pattern) },
-		{ prolog64_7_pattern, sizeof(prolog64_7_pattern) },
-		{ (BYTE*)text_pattern, strlen(text_pattern) },
-	};
+	// search through the list:
 	size_t counter = 0;
 	DWORD start = GetTickCount();
 	for (DWORD i = 0; i < _countof(patterns); i++) {
-		counter += count_patterns(loadedData, loadedSize, patterns[i].ptr, patterns[i].size);
+		const t_pattern& p = patterns[i];
+		if (!p.ptr) continue;
+		counter += count_patterns(loadedData, loadedSize, p.ptr, p.size);
 	}
 	DWORD end = GetTickCount();
 	print_results(__FUNCTION__, counter, (end - start));
@@ -141,75 +94,22 @@ size_t naive_count(BYTE* loadedData, size_t loadedSize)
 
 size_t tree_count(BYTE* loadedData, size_t loadedSize)
 {
-	BYTE prolog32_pattern[] = {
-		0x55, // PUSH EBP
-		0x8b, 0xEC // MOV EBP, ESP
-	};
-
-	BYTE prolog32_2_pattern[] = {
-		0x55, // PUSH EBP
-		0x89, 0xE5 // MOV EBP, ESP
-	};
-
-	BYTE prolog32_3_pattern[] = {
-		0x60, // PUSHAD
-		0x89, 0xE5 // MOV EBP, ESP
-	};
-
-	BYTE prolog64_pattern[] = {
-		0x40, 0x53,       // PUSH RBX
-		0x48, 0x83, 0xEC // SUB RSP, <BYTE>
-	};
-	BYTE prolog64_2_pattern[] = {
-		0x55,            // PUSH RBP
-		0x48, 0x8B, 0xEC // MOV RBP, RSP
-	};
-	BYTE prolog64_3_pattern[] = {
-		0x40, 0x55,      // PUSH RBP
-		0x48, 0x83, 0xEC // SUB RSP, <BYTE>
-	};
-	BYTE prolog64_4_pattern[] = {
-		0x53,            // PUSH RBX
-		0x48, 0x81, 0xEC // SUB RSP, <DWORD>
-	};
-	BYTE prolog64_5_pattern[] = {
-		0x48, 0x83, 0xE4, 0xF0 // AND rsp, FFFFFFFFFFFFFFF0; Align RSP to 16 bytes
-	};
-	BYTE prolog64_6_pattern[] = {
-		0x57,            // PUSH RDI
-		0x48, 0x89, 0xE7 // MOV RDI, RSP
-	};
-	BYTE prolog64_7_pattern[] = {
-		 0x48, 0x8B, 0xC4, // MOV RAX, RSP
-		 0x48, 0x89, 0x58, 0x08, // MOV QWORD PTR [RAX + 8], RBX
-		 0x4C, 0x89, 0x48, 0x20, // MOV QWORD PTR [RAX + 0X20], R9
-		 0x4C, 0x89, 0x40, 0x18, // MOV QWORD PTR [RAX + 0X18], R8
-		 0x48, 0x89, 0x50, 0x10, // MOV QWORD PTR [RAX + 0X10], RDX
-		 0x55, // PUSH RBP
-		 0x56, // PUSH RSI
-		 0x57, // PUSH RDI 
-		 0x41, 0x54, // PUSH R12
-		 0x41, 0x55, // PUSH R13
-		 0x41, 0x56, // PUSH R14
-		 0x41, 0x57 // PUSH R15
-	};
 	Node rootN;
-
-	rootN.addPattern("prolog32_pattern", prolog32_pattern, sizeof(prolog32_pattern));
-	rootN.addPattern("prolog32_2_pattern", prolog32_2_pattern, sizeof(prolog32_2_pattern));
-	rootN.addPattern("prolog32_3_pattern", prolog32_3_pattern, sizeof(prolog32_3_pattern));
-
-	rootN.addPattern("prolog64_pattern", prolog64_pattern, sizeof(prolog64_pattern));
-	rootN.addPattern("prolog64_2_pattern", prolog64_2_pattern, sizeof(prolog64_2_pattern));
-	rootN.addPattern("prolog64_3_pattern", prolog64_3_pattern, sizeof(prolog64_3_pattern));
-
-	rootN.addPattern("prolog64_4_pattern", prolog64_4_pattern, sizeof(prolog64_4_pattern));
-	rootN.addPattern("prolog64_5_pattern", prolog64_5_pattern, sizeof(prolog64_5_pattern));
-	rootN.addPattern("prolog64_6_pattern", prolog64_6_pattern, sizeof(prolog64_6_pattern));
-	rootN.addPattern("prolog64_7_pattern", prolog64_7_pattern, sizeof(prolog64_7_pattern));
+	// init patterns list:
+	for (size_t i = 0; i < _countof(patterns32); i++) {
+		const t_pattern& pattern = patterns32[i];
+		std::string name = "prolog32_" + std::to_string(i);
+		rootN.addPattern(name.c_str(), pattern.ptr, pattern.size);
+	}
+	for (size_t i = 0; i < _countof(patterns64); i++) {
+		const t_pattern& pattern = patterns64[i];
+		std::string name = "prolog64_" + std::to_string(i);
+		rootN.addPattern(name.c_str(), pattern.ptr, pattern.size);
+	}
 	rootN.addTextPattern("module");
-	std::vector<Match> allMatches;
 
+	// search through the list:
+	std::vector<Match> allMatches;
 	DWORD start = GetTickCount();
 	size_t counter = find_all_matches(rootN, loadedData, loadedSize, allMatches);
 	DWORD end = GetTickCount();
@@ -292,7 +192,7 @@ bool aho_corasic_test()
 	if (find_matches(rootN, loadedData, loadedSize, __FUNCTION__, true) == 3) {
 		return true;
 	}
-	std::cerr << __FUNCTION__ << " : Test failed.\n";
+	std::cerr << "[-]" << __FUNCTION__ << " : Test failed.\n";
 	return false;
 }
 
@@ -309,7 +209,7 @@ bool aho_corasic_test2()
 	if (find_matches(rootN, loadedData, loadedSize, __FUNCTION__, true) == 3) {
 		return true;
 	}
-	std::cerr << __FUNCTION__ << " : Test failed.\n";
+	std::cerr << "[-]" << __FUNCTION__ << " : Test failed.\n";
 	return false;
 }
 
@@ -324,7 +224,7 @@ bool aho_corasic_test3()
 	if (find_matches(rootN, loadedData, loadedSize, __FUNCTION__, true) == 1) {
 		return true;
 	}
-	std::cerr << __FUNCTION__ << " : Test failed.\n";
+	std::cerr << "[-]" << __FUNCTION__ << " : Test failed.\n";
 	return false;
 }
 
@@ -340,7 +240,7 @@ bool aho_corasic_test4()
 	if (find_matches(rootN, loadedData, loadedSize, __FUNCTION__, true) == 7) {
 		return true;
 	}
-	std::cerr << __FUNCTION__ << " : Test failed.\n";
+	std::cerr << "[-]" << __FUNCTION__ << " : Test failed.\n";
 	return false;
 }
 
@@ -358,7 +258,7 @@ bool aho_corasic_test5()
 	if (find_matches(rootN, loadedData, loadedSize, __FUNCTION__, true) == 0) {
 		return true;
 	}
-	std::cerr << __FUNCTION__ << " : Test failed.\n";
+	std::cerr << "[-]" << __FUNCTION__ << " : Test failed.\n";
 	return false;
 }
 
@@ -384,11 +284,17 @@ int main(int argc, char *argv[])
 	}
 	size_t nRes = naive_search(loadedData, loadedSize);
 	size_t tRes = tree_search(loadedData, loadedSize);
-	if (nRes != tRes) return (-2);
+	if (nRes != tRes) {
+		std::cerr << "[-] Test failed.\n";
+		return (-2);
+	}
 	std::cout << "---\n";
 	nRes = naive_count(loadedData, loadedSize);
 	tRes = tree_count(loadedData, loadedSize);
-	if (nRes != tRes) return (-2);
+	if (nRes != tRes) {
+		std::cerr << "[-] Test failed.\n";
+		return (-2);
+	}
 	std::cout << "---\n";
 	multi_search(loadedData, loadedSize);
 

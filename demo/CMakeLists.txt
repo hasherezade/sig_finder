@@ -12,6 +12,8 @@ set (srcs
 )
 
 set (hdrs
+	util.h
+	code_patterns.h
 )
 
 add_executable ( ${PROJECT_NAME} ${hdrs} ${srcs} )
