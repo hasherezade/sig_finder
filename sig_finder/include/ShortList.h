@@ -23,6 +23,9 @@ public:
 
 	bool resize(size_t newElementCount)
 	{
+		if (!this->list) { // don't try to reallocate the list if it was NULL
+			return false;
+		}
 		this->list = (Element*)::realloc(this->list, newElementCount * sizeof(Element));
 		if (this->list) {
 			this->maxCount = newElementCount;
