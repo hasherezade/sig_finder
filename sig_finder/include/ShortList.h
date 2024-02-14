@@ -14,6 +14,7 @@ public:
 			std::cerr << "Allocating ShortList failed!\n";
 		}
 	}
+
 	~ShortList()
 	{
 		if (this->Items) {
@@ -99,7 +100,7 @@ public:
 	{
 		this->Items = (Element*) ::calloc(MaxItemsCount, sizeof(Element));
 		if (!this->Items) {
-			std::cerr << "Allocating ByteMap failed!\n";
+			std::cerr << "Allocating ShortMap failed!\n";
 		}
 	}
 

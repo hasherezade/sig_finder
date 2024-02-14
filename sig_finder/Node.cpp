@@ -88,7 +88,6 @@ size_t Node::getMatching(const BYTE* data, size_t data_size, std::vector<Match>&
 		const size_t level2_max = (level1->size() * MAX_PER_ROUND) + 1;
 		if (level2_max > level2->maxSize()) {
 			if (!level2->resize(level2_max)) {
-				std::cerr << "Failed to reallocate!\n";
 				return processed;
 			}
 		}
