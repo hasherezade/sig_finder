@@ -51,7 +51,7 @@ std::string Signature::toByteStr()
 {
 	std::stringstream ss;
 	for (size_t i = 0; i < this->pattern_size; i++) {
-		if (mask[i] == MASK_IMM) {
+		if (!mask || mask[i] == MASK_IMM) {
 			ss << std::setw(2) << std::setfill('0') << std::hex << (unsigned int)(pattern[i]);
 		}
 		else if (mask[i] == MASK_PARTIAL_L) {
