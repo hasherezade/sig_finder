@@ -6,8 +6,6 @@
 #include <vector>
 #include <cstring>
 
-#include "CRC32.h"
-
 namespace sig_finder {
 
 	class Signature
@@ -83,23 +81,7 @@ namespace sig_finder {
 			return true;
 		}
 
-		bool calcCrc32()
-		{
-			if (!pattern) return false;
-
-			util::CRC32 crcCalc;
-			crcCalc.update(pattern, pattern_size);
-			if (mask) {
-				crcCalc.update(mask, pattern_size);
-			}
-			else {
-				for (size_t i = 0; i < pattern_size; i++) {
-					crcCalc.update(0xFF); //IMM
-				}
-			}
-			this->crc32 = crcCalc.getChecksum();
-			return true;
-		}
+		bool calcCrc32();
 
 		friend class Node;
 	};

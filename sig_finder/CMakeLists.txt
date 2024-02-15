@@ -8,6 +8,8 @@ set(INSTALL_BIN_DIR bin CACHE PATH "Installation directory for executables")
 set (sig_srcs
 	Signature.cpp
 	Node.cpp
+	CRC32.h
+	util.h
 )
 
 set (sig_hdrs

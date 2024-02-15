@@ -9,6 +9,8 @@
 #include "ShortList.h"
 #include "Node.h"
 
+#include "CRC32.h"
+
 //--------------------------------------
 
 using namespace sig_finder;
@@ -46,6 +48,24 @@ namespace sig_finder {
 		return false;
 	}
 };
+
+bool Signature::calcCrc32()
+{
+	if (!pattern) return false;
+
+	util::CRC32 crcCalc;
+	crcCalc.update(pattern, pattern_size);
+	if (mask) {
+		crcCalc.update(mask, pattern_size);
+	}
+	else {
+		for (size_t i = 0; i < pattern_size; i++) {
+			crcCalc.update(MASK_IMM);
+		}
+	}
+	this->crc32 = crcCalc.getChecksum();
+	return true;
+}
 
 std::string Signature::toByteStr()
 {
@@ -119,6 +139,7 @@ size_t Signature::loadFromFile(std::string fname, std::vector<Signature*>& signa
 	input.close();
 	return num;
 }
+
 
 namespace sig_finder {
 	bool hasSignature(const std::vector<Signature*> &signatures, const Signature& searchedSign)
