@@ -41,6 +41,10 @@ size_t find_matches(Node &rootN, BYTE loadedData[], size_t loadedSize, const cha
 			std::cout << std::endl;
 		}
 	}
+	char report[] = "raw_offsets.tag";
+	if (Match::saveMatches(report, allMatches, ';')) {
+		std::cout << "[+] Saved matches to: " << report << std::endl;
+	}
 	print_results(desc, counter, (end - start));
 	return counter;
 }
