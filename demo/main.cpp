@@ -262,6 +262,28 @@ bool aho_corasic_test5()
 	return false;
 }
 
+bool sig_check()
+{
+	const BYTE test_pattern[] = { 0x54, 0x45, 0x53, 0x54 };
+	const BYTE test_mask[] = { 0xFF, 0xFF, 0xFF, 0xFF};
+	Signature test1("test1", test_pattern, sizeof(test_pattern), test_mask);
+	Signature test2("test2", test_pattern, sizeof(test_pattern), nullptr);
+
+	if (test2 != test1) {
+		std::cerr << "[-] " << __FUNCTION__ << " : Test failed.\n";
+		return false;
+	}
+	std::cout << "[+] " << __FUNCTION__ << " : Sign test 1 OK\n";
+	const BYTE test_mask3[] = { 0xFF, 0x0F, 0xFF, 0xFF };
+	Signature test3("test3", test_pattern, sizeof(test_mask3), nullptr);
+	if (test1 != test3) {
+		std::cerr << "[-] " << __FUNCTION__ << " : Test failed.\n";
+		return false;
+	}
+	std::cout << "[+] " << __FUNCTION__ << " : Sign test 2 OK\n";
+	return true;
+}
+
 int main(int argc, char *argv[])
 {
 	if (!aho_corasic_test()) return (-1);
@@ -298,11 +320,17 @@ int main(int argc, char *argv[])
 	std::cout << "---\n";
 	multi_search(loadedData, loadedSize);
 
+	sig_check();
+
+	std::cout << "---\n";
 	std::vector<Signature*> signatures;
-	if (!sig_finder::Signature::loadFromFile(argv[2], signatures)) {
+	size_t loaded = 0;
+	if (!(loaded = sig_finder::Signature::loadFromFile(argv[2], signatures))) {
 		std::cerr << "Could not load signatures from file!\n";
 		return 2;
 	}
+	std::cout << "Loaded: " << loaded << "\n";
+
 	Node rootN;
 	rootN.addPatterns(signatures);
 	find_matches(rootN, loadedData, loadedSize, "from_sig_file", false);
