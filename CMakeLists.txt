@@ -17,6 +17,11 @@ set ( PARAMKIT_DIR "${CMAKE_SOURCE_DIR}/${M_SIGFINDER_LIB}" CACHE PATH "SigFinde
 add_subdirectory ( sig_finder )
 set ( PARAMKIT_LIB $<TARGET_FILE:sig_finder> CACHE PATH "SigFinder library path" )
 
-#demos:
-add_subdirectory ( ${M_SIGFINDER_DEMO} )
-add_dependencies ( ${M_SIGFINDER_DEMO} sig_finder )
+# Setup testing
+if(SIGFINDER_BUILD_TESTING)
+	enable_testing()
+	
+	#demos:
+	add_subdirectory ( ${M_SIGFINDER_DEMO} )
+	add_dependencies ( ${M_SIGFINDER_DEMO} sig_finder )
+endif()

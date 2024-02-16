@@ -24,11 +24,9 @@ add_dependencies( ${PROJECT_NAME} sig_finder )
 INSTALL( TARGETS ${PROJECT_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX} COMPONENT ${PROJECT_NAME} )
 
 # Setup testing
-if(SIGFINDER_BUILD_TESTING)
-	enable_testing()
-	
-	# 0) does the application run
-	add_test (TestBasic ${CMAKE_INSTALL_PREFIX}/demo )
-	set_tests_properties(TestBasic PROPERTIES PASS_REGULAR_EXPRESSION "[+] All passed.")
 
-endif()
+enable_testing()
+	
+# 0) Basic Test (Aho-Corasic patterns, etc)
+add_test (TestBasic ${CMAKE_INSTALL_PREFIX}/demo )
+set_tests_properties(TestBasic PROPERTIES PASS_REGULAR_EXPRESSION "[+] All passed.")
