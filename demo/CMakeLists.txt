@@ -32,5 +32,9 @@ add_test (TestBasic ${CMAKE_INSTALL_PREFIX}/demo )
 set_tests_properties(TestBasic PROPERTIES PASS_REGULAR_EXPRESSION "All passed")
 
 # 1) SigFinder vs Naive search
-add_test (TestCompareWithNaive ${CMAKE_INSTALL_PREFIX}/demo ${CMAKE_INSTALL_PREFIX}/demo.exe)
-set_tests_properties(TestCompareWithNaive PROPERTIES FAIL_REGULAR_EXPRESSION "Test failed")
+add_test (TestCompareWithNaive_Self ${CMAKE_INSTALL_PREFIX}/demo ${CMAKE_INSTALL_PREFIX}/demo.exe)
+set_tests_properties(TestCompareWithNaive_Self PROPERTIES FAIL_REGULAR_EXPRESSION "Test failed")
+
+# 2) SigFinder vs Naive search (NTDLL)
+add_test (TestCompareWithNaive_Ntdll ${CMAKE_INSTALL_PREFIX}/demo %WINDIR%\System32\ntdll.dll)
+set_tests_properties(TestCompareWithNaive_Ntdll PROPERTIES FAIL_REGULAR_EXPRESSION "Test failed")
