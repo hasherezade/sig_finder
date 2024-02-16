@@ -294,8 +294,8 @@ int main(int argc, char *argv[])
 	if (!sig_check()) return (-1);
 	std::cout << "[+] All passed.\n";
 
-	if (argc < 3) {
-		std::cout << " Args: <input_file> <patterns_file>\n";
+	if (argc < 2) {
+		std::cout << " Args: <input_file>\n";
 		return 0;
 	}
 
@@ -321,6 +321,10 @@ int main(int argc, char *argv[])
 	std::cout << "---\n";
 	multi_search(loadedData, loadedSize);
 
+	if (argc < 3) {
+		std::cout << " Args: <input_file> <patterns_file>\n";
+		return 0;
+	}
 	std::cout << "---\n";
 	std::vector<Signature*> signatures;
 	size_t loaded = 0;
