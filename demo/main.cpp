@@ -286,43 +286,44 @@ bool sig_check()
 
 int main(int argc, char *argv[])
 {
-	if (!aho_corasic_test()) return (-1);
-	if (!aho_corasic_test2()) return (-1);
-	if (!aho_corasic_test3()) return (-1);
-	if (!aho_corasic_test4()) return (-1);
-	if (!aho_corasic_test5()) return (-1);
-	if (!sig_check()) return (-1);
-	std::cout << "[+] All passed.\n";
-
 	if (argc < 2) {
-		std::cout << " Args: <input_file>\n";
+		if (!aho_corasic_test()) return (-1);
+		if (!aho_corasic_test2()) return (-1);
+		if (!aho_corasic_test3()) return (-1);
+		if (!aho_corasic_test4()) return (-1);
+		if (!aho_corasic_test5()) return (-1);
+		if (!sig_check()) return (-1);
+		std::cout << "[+] All passed.\n";
+
+		std::cout << "To search for hardcoded patterns in a file use:\nArgs: <input_file>\n";
 		return 0;
 	}
 
 	size_t loadedSize = 0;
-	BYTE *loadedData = load_file(argv[1], loadedSize);
+	BYTE* loadedData = load_file(argv[1], loadedSize);
 	if (!loadedData) {
 		std::cout << "Failed to load!\n";
 		return 1;
 	}
-	size_t nRes = naive_search(loadedData, loadedSize);
-	size_t tRes = tree_search(loadedData, loadedSize);
-	if (nRes != tRes) {
-		std::cerr << "[-] Test failed.\n";
-		return (-2);
-	}
-	std::cout << "---\n";
-	nRes = naive_count(loadedData, loadedSize);
-	tRes = tree_count(loadedData, loadedSize);
-	if (nRes != tRes) {
-		std::cerr << "[-] Test failed.\n";
-		return (-2);
-	}
-	std::cout << "---\n";
-	multi_search(loadedData, loadedSize);
 
 	if (argc < 3) {
-		std::cout << " Args: <input_file> <patterns_file>\n";
+		size_t nRes = naive_search(loadedData, loadedSize);
+		size_t tRes = tree_search(loadedData, loadedSize);
+		if (nRes != tRes) {
+			std::cerr << "[-] Test failed.\n";
+			return (-2);
+		}
+		std::cout << "---\n";
+		nRes = naive_count(loadedData, loadedSize);
+		tRes = tree_count(loadedData, loadedSize);
+		if (nRes != tRes) {
+			std::cerr << "[-] Test failed.\n";
+			return (-2);
+		}
+		std::cout << "---\n";
+		multi_search(loadedData, loadedSize);
+		std::cout << "[+] Finished.\n";
+		std::cout << "To search for external patterns in a file use:\nArgs: <input_file> <patterns_file>\n";
 		return 0;
 	}
 	std::cout << "---\n";
@@ -338,6 +339,6 @@ int main(int argc, char *argv[])
 	rootN.addPatterns(signatures);
 	find_matches(rootN, loadedData, loadedSize, "from_sig_file", false);
 
-	std::cout << "Finished!\n";
+	std::cout << "[+] Finished.\n";
 	return 0;
 }
