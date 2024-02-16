@@ -39,7 +39,12 @@ set_tests_properties(TestCompareWithNaive_Self PROPERTIES FAIL_REGULAR_EXPRESSIO
 add_test (TestCompareWithNaive_Ntdll ${CMAKE_INSTALL_PREFIX}/demo C:/Windows/System32/ntdll.dll)
 set_tests_properties(TestCompareWithNaive_Ntdll PROPERTIES FAIL_REGULAR_EXPRESSION "Test failed")
 
-# 3) SigFinder vs Naive search (ntoskrnl.ede)
+# 3) SigFinder vs Naive search (ntoskrnl.exe)
 add_test (TestCompareWithNaive_Ntoskrnl ${CMAKE_INSTALL_PREFIX}/demo C:/Windows/System32/ntoskrnl.exe)
 set_tests_properties(TestCompareWithNaive_Ntoskrnl PROPERTIES FAIL_REGULAR_EXPRESSION "Test failed")
 set_tests_properties(TestCompareWithNaive_Ntoskrnl PROPERTIES SKIP_REGULAR_EXPRESSION "Failed to load")
+
+# 4) SigFinder vs Naive search (explorer.exe)
+add_test (TestCompareWithNaive_Ntoskrnl ${CMAKE_INSTALL_PREFIX}/demo C:/Windows/explorer.exe)
+set_tests_properties(TestCompareWithNaive_Explorer PROPERTIES FAIL_REGULAR_EXPRESSION "Test failed")
+set_tests_properties(TestCompareWithNaive_Explorer PROPERTIES SKIP_REGULAR_EXPRESSION "Failed to load")
