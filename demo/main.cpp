@@ -291,6 +291,7 @@ int main(int argc, char *argv[])
 	if (!aho_corasic_test3()) return (-1);
 	if (!aho_corasic_test4()) return (-1);
 	if (!aho_corasic_test5()) return (-1);
+	if (!sig_check()) return (-1);
 	std::cout << "[+] All passed.\n";
 
 	if (argc < 3) {
@@ -319,8 +320,6 @@ int main(int argc, char *argv[])
 	}
 	std::cout << "---\n";
 	multi_search(loadedData, loadedSize);
-
-	sig_check();
 
 	std::cout << "---\n";
 	std::vector<Signature*> signatures;
