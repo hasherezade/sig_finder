@@ -29,4 +29,4 @@ enable_testing()
 	
 # 0) Basic Test (Aho-Corasic patterns, etc)
 add_test (TestBasic ${CMAKE_INSTALL_PREFIX}/demo )
-set_tests_properties(TestBasic PROPERTIES PASS_REGULAR_EXPRESSION "[+] All passed.")
+set_tests_properties(TestBasic PROPERTIES PASS_REGULAR_EXPRESSION "All passed")
