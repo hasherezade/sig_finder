@@ -30,3 +30,7 @@ enable_testing()
 # 0) Basic Test (Aho-Corasic patterns, etc)
 add_test (TestBasic ${CMAKE_INSTALL_PREFIX}/demo )
 set_tests_properties(TestBasic PROPERTIES PASS_REGULAR_EXPRESSION "All passed")
+
+# 1) SigFinder vs Naive search
+add_test (TestCompareWithNaive ${CMAKE_INSTALL_PREFIX}/demo demo.exe)
+set_tests_properties(TestCompareWithNaive PROPERTIES FAIL_REGULAR_EXPRESSION "Test failed")
