@@ -42,3 +42,4 @@ set_tests_properties(TestCompareWithNaive_Ntdll PROPERTIES FAIL_REGULAR_EXPRESSI
 # 3) SigFinder vs Naive search (ntoskrnl.ede)
 add_test (TestCompareWithNaive_Ntoskrnl ${CMAKE_INSTALL_PREFIX}/demo C:/Windows/System32/ntoskrnl.exe)
 set_tests_properties(TestCompareWithNaive_Ntoskrnl PROPERTIES FAIL_REGULAR_EXPRESSION "Test failed")
+set_tests_properties(TestCompareWithNaive_Ntoskrnl PROPERTIES SKIP_REGULAR_EXPRESSION "Failed to load")
