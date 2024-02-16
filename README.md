@@ -2,7 +2,11 @@
 
 [![Build status](https://ci.appveyor.com/api/projects/status/pem6dwj7lfpuxc37?svg=true)](https://ci.appveyor.com/project/hasherezade/sig-finder)
 
-Allows to find binary signatures with wildcards in a given buffer. Example of a valid signature:
+Allows to find binary signatures with wildcards in a given buffer. The wildcard is defined by `?` and can be used to mask one nibble. Examples of valid signatures:
+
+`23 56 12 68`
+
+`55 0? 34 12`
 
 `40 ?? 4? 8? e?`
 
