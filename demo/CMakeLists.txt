@@ -35,6 +35,10 @@ set_tests_properties(TestBasic PROPERTIES PASS_REGULAR_EXPRESSION "All passed")
 add_test (TestCompareWithNaive_Self ${CMAKE_INSTALL_PREFIX}/demo ${CMAKE_INSTALL_PREFIX}/demo.exe)
 set_tests_properties(TestCompareWithNaive_Self PROPERTIES FAIL_REGULAR_EXPRESSION "Test failed")
 
-# 2) SigFinder vs Naive search (NTDLL)
+# 2) SigFinder vs Naive search (ntdll.dll)
 add_test (TestCompareWithNaive_Ntdll ${CMAKE_INSTALL_PREFIX}/demo C:/Windows/System32/ntdll.dll)
 set_tests_properties(TestCompareWithNaive_Ntdll PROPERTIES FAIL_REGULAR_EXPRESSION "Test failed")
+
+# 3) SigFinder vs Naive search (ntoskrnl.ede)
+add_test (TestCompareWithNaive_Ntoskrnl ${CMAKE_INSTALL_PREFIX}/demo C:/Windows/System32/ntoskrnl.exe)
+set_tests_properties(TestCompareWithNaive_Ntoskrnl PROPERTIES FAIL_REGULAR_EXPRESSION "Test failed")
