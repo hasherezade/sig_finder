@@ -83,7 +83,7 @@ size_t Node::getMatching(const BYTE* data, size_t data_size, std::vector<Match>&
 	ShortList<Node*> level2_list(MAX_PER_ROUND + 1);
 	auto level2 = &level2_list;
 
-	for (size_t i = 0; i < data_size; i++, processed++)
+	for (size_t i = 0; i <= data_size; i++, processed++)
 	{
 		const size_t level2_max = (level1->size() * MAX_PER_ROUND) + 1;
 		if (level2_max > level2->maxSize()) {
@@ -102,11 +102,13 @@ size_t Node::getMatching(const BYTE* data, size_t data_size, std::vector<Match>&
 					return match_start;
 				}
 			}
-			_followAllMasked(level2, curr, data[i]); // adds up to 4 nodes to the level2
-			if (moveStart) {
-				if (curr != this) {
-					// the current value may also be a beginning of a new pattern:
-					_followAllMasked(level2, this, data[i]); // adds up to 4 nodes to the level2
+			if (i < data_size) {
+				_followAllMasked(level2, curr, data[i]); // adds up to 4 nodes to the level2
+				if (moveStart) {
+					if (curr != this) {
+						// the current value may also be a beginning of a new pattern:
+						_followAllMasked(level2, this, data[i]); // adds up to 4 nodes to the level2
+					}
 				}
 			}
 		}
