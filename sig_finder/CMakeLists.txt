@@ -22,3 +22,14 @@ set (sig_hdrs
 )
 include_directories ( include )
 add_library(${PROJECT_NAME} STATIC ${sig_srcs} ${sig_hdrs})
+
+if(SIGFINDER_LIB_INSTALL)
+	include(GNUInstallDirs)
+
+	install(TARGETS ${PROJECT_NAME}
+		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+		RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+	install(DIRECTORY "include/" DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+endif()
