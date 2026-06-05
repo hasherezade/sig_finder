@@ -44,7 +44,9 @@ namespace sig_finder {
 				return true;
 			}
 		}
+#ifdef _DEBUG
 		std::cerr << "Invalid chunk supplied: " << std::hex << chunk[0] << " : " << chunk[1] << std::endl;
+#endif// _DEBUG
 		return false;
 	}
 };
