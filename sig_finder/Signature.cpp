@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <iomanip>
+#include <cstdio>
 
 #include "util.h"
 #include "ShortList.h"
@@ -100,7 +101,7 @@ bool filterWhitechars(const std::string& inpstr, std::string& outstr)
 	size_t added = 0;
 	for (size_t i = 0; i < insize; ++i) {
 		const unsigned char c = inpstr.at(i);
-		if (!std::isspace(c)) {
+		if (!::isspace(c)) {
 			outstr.push_back(c);
 			added++;
 		}  
