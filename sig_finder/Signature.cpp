@@ -91,28 +91,53 @@ std::string Signature::toByteStr()
 }
 //---
 
+bool filterWhitechars(const std::string& inpstr, std::string& outstr)
+{
+	outstr.reserve(inpstr.size());
+	size_t insize = inpstr.size();
+	size_t added = 0;
+	for (size_t i = 0; i < insize; ++i) {
+		const unsigned char c = inpstr.at(i);
+		if (!std::isspace(c)) {
+			outstr.push_back(c);
+			added++;
+		}  
+	}
+	return added != 0;
+}
 
 Signature* Signature::loadFromByteStr(const std::string& signName, const std::string& content)
 {
-	if (!content.length()) return nullptr;
+	if (content.empty()) {
+		return nullptr;
+	}
+	// filter:
+	std::string filtered;
+	if (!filterWhitechars(content, filtered)) {
+		return nullptr;
+	}
+	const size_t len = filtered.length();
+	if (!len) return nullptr;
 
-	const size_t buf_max = content.length() / 2;
-	BYTE* pattern = (BYTE*)::calloc(buf_max, 1);
-	BYTE* mask = (BYTE*)::calloc(buf_max, 1);
-	if (!pattern || !mask) return nullptr;
+	const size_t buf_max = (len + 1)/ 2;
+
+	BYTE* pattern = static_cast<BYTE*>(::calloc(buf_max, 1));
+	BYTE* mask = static_cast<BYTE*>(::calloc(buf_max, 1));
+	if (!pattern || !mask) {
+		free(pattern);
+		free(mask);
+		return nullptr;
+	}
 
 	bool isOk = true;
-	std::stringstream input(content);
 	size_t indx = 0;
 	// parse all the nodes one by one
-	while(!input.eof() && indx < buf_max) {
+	for (size_t i = 0; i < len; i+=2 ){
 		// parse all chunks from the line
 		char chunk[3] = { 0, 0, 0 };
-		input >> chunk[0];
-		if (input.eof()) {
-			break;
-		}
-		input >> chunk[1];
+		chunk[0] =  filtered[i];
+		chunk[1] = ((i + 1) < len) ? filtered[i + 1] : WILD_CHAR;
+
 		if (!parseSigNode(chunk, pattern[indx], mask[indx])) {
 			isOk = false;
 			break;
